@@ -1,9 +1,5 @@
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-
-import java.nio.ByteBuffer;
-import java.security.NoSuchAlgorithmException;
-import java.time.Instant;
 import java.util.Date;
 
 public class TOTP {
@@ -55,11 +51,12 @@ public class TOTP {
     // Recebe o intervalo de tempo e executa o algoritmo TOTP para produzir
     // o código TOTP. Usa os métodos auxiliares getTOTPCodeFromHash e HMAC_SHA1.
     private String TOTPCode(long timeInterval) {
-        // Colocando o timeInterval em um ByteBuffer de 8 bytes
-        ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
-        buffer.putLong(timeInterval);
-        // Convertendo o ByteBuffer para array de bytes
-        byte[] counter = buffer.array();
+        // Convertendo o timeInterval para um array de 8 bytes
+        byte[] counter = new byte[Long.BYTES];
+        for (int i = 7; i >= 0; i--) {
+            counter[i] = (byte) (timeInterval & 0xFF);
+            timeInterval >>= 8;
+        }
 
         byte[] hash = HMAC_SHA1(counter, key); 
         return getTOTPCodeFromHash(hash);
@@ -68,7 +65,9 @@ public class TOTP {
     // Método que é utilizado para solicitar a geração do código TOTP.
     public String generateCode() {
         // Calculando a quantidade de intervalos de 30 segundos desde Janeiro 1, 1970, 00:00:00 GMT.
-        long timeInterval = Instant.now().getEpochSecond() / (timeStepInSeconds);
+        long secondsSinceEpoch = System.currentTimeMillis() / 1000;
+        long timeInterval = secondsSinceEpoch / (timeStepInSeconds);
+
         return TOTPCode(timeInterval);
     }
 
@@ -76,11 +75,11 @@ public class TOTP {
     // Deve considerar um atraso ou adiantamento de 30 segundos no
     // relógio da máquina que gerou o código TOTP.
     public boolean validateCode(String inputTOTP) {
-        long epochSecond = Instant.now().getEpochSecond();
+        long secondsSinceEpoch = System.currentTimeMillis() / 1000;
 
-        String menos30segTOTP = TOTPCode((epochSecond - 30)/timeStepInSeconds);
-        String exatoTOTP = TOTPCode(epochSecond/timeStepInSeconds);
-        String mais30segTOTP = TOTPCode((epochSecond + 30)/timeStepInSeconds);
+        String menos30segTOTP = TOTPCode((secondsSinceEpoch - 30) / timeStepInSeconds);
+        String exatoTOTP = TOTPCode(secondsSinceEpoch / timeStepInSeconds);
+        String mais30segTOTP = TOTPCode((secondsSinceEpoch + 30) / timeStepInSeconds);
 
         boolean codeIsValid = (inputTOTP.equalsIgnoreCase(menos30segTOTP)) || (inputTOTP.equalsIgnoreCase(exatoTOTP)) || (inputTOTP.equalsIgnoreCase(mais30segTOTP));
 
