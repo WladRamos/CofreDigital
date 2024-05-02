@@ -53,16 +53,22 @@ public class Database {
         /* Popula a tabela Mensagens com as mensagens de registro pré-definidas */
         populateTableMensagens();
         try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM Mensagens");
-            resultSet.next();
-            int totalCount = resultSet.getInt(1);
-            resultSet.close();
-        
-            if (totalCount != 57) {
-                System.out.println("Err: Há 57 mensagens de registro pré-definidas e" + totalCount + " entradas na tabela Mensagens.");
+            int countMsg = countTableEntries("Mensagens");
+            if (countMsg != 57) {
+                System.out.println("Err: Há 57 mensagens de registro pré-definidas e" + countMsg + " entradas na tabela Mensagens.");
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        /* Popula a tabela Grupos com os grupos pré-definidos */
+        populateTableGrupos();
+        try {
+            int countGrp = countTableEntries("Grupos");
+            if (countGrp != 57) {
+                System.out.println("Err: Há 2 grupos pré-definidos e" + countGrp + " entradas na tabela Grupos.");
+            }
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
@@ -149,12 +155,7 @@ public class Database {
 
     private void populateTableMensagens(){
         try {
-            Statement statement = connection.createStatement();
-            ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM Mensagens");
-            resultSet.next();
-            int count = resultSet.getInt(1);
-            resultSet.close();
-
+            int count = countTableEntries("Mensagens");
             if (count == 0) {
                 String sql = "INSERT INTO Mensagens (MID, mensagem) VALUES (1001, 'Sistema iniciado.');" +
                              "INSERT INTO Mensagens (MID, mensagem) VALUES (1002, 'Sistema encerrado.');" +
@@ -226,4 +227,37 @@ public class Database {
         }
     }
 
+    private void populateTableGrupos(){
+        try {
+            int count = countTableEntries("Grupos");
+            if (count == 0) {
+                String sql = "INSERT INTO Grupos (GID, nome_grupo) VALUES (1, 'Administrador');" +
+                             "INSERT INTO Grupos (GID, nome_grupo) VALUES (2, 'Usuário comum');";
+
+                PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                preparedStatement.executeUpdate();
+                preparedStatement.close();
+            } else {
+                System.out.println("populateTableGrupos() abortada. Tabela Grupos não está vazia.");
+            }
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private int countTableEntries(String table){
+        try {
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM " + table);
+            resultSet.next();
+            int count = resultSet.getInt(1);
+            resultSet.close();
+            return count;
+        } catch (SQLException e){
+            e.printStackTrace();
+            return -1;
+        }
+    }
+    
 }
