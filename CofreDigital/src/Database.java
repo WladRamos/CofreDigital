@@ -16,6 +16,8 @@ public class Database {
             String usuario = "dbuser";
             String senha = "mysqlinf1416";
             this.connection = DriverManager.getConnection(url, usuario, senha);
+            createDatabaseIfNotExists();
+            this.connection.setCatalog("CofreDigital");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -37,6 +39,17 @@ public class Database {
             if (connection != null) {
                 connection.close();
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void createDatabaseIfNotExists() {
+        try {
+            Statement statement = connection.createStatement();
+            String sql = "CREATE DATABASE IF NOT EXISTS CofreDigital";
+            statement.executeUpdate(sql);
+            statement.close();
         } catch (SQLException e) {
             e.printStackTrace();
         }
