@@ -12,9 +12,9 @@ public class Database {
 
     private Database() {
         try {
-            String url = "jdbc:mysql://localhost:3306/CofreDigital";
-            String usuario = "dbuser";
-            String senha = "mysqlinf1416";
+            String url = "jdbc:mysql://localhost:3306";
+            String usuario = "root";
+            String senha = "mysql";
             this.connection = DriverManager.getConnection(url, usuario, senha);
             createDatabaseIfNotExists();
             this.connection.setCatalog("CofreDigital");
@@ -110,9 +110,9 @@ public class Database {
             Statement statement = connection.createStatement();
             String sql = "CREATE TABLE IF NOT EXISTS Chaveiro (" +
                          "KID INT PRIMARY KEY AUTO_INCREMENT," +
-                         "chave_privada_criptografada BLOB NOT NULL," +
+                         "chave_privada_criptografada BLOB(255) NOT NULL," +    //Checar essa tamanho depois
                          "certificado_digital TEXT NOT NULL," +
-                         "CONSTRAINT unique_chave_certificado UNIQUE (chave_privada, certificado_digital)" +
+                         "CONSTRAINT unique_chave_certificado UNIQUE (chave_privada_criptografada, certificado_digital)" +
                          ")";
             statement.executeUpdate(sql);
             statement.close();

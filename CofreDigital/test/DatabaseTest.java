@@ -29,7 +29,7 @@ public class DatabaseTest {
                 try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + table);
                      ResultSet resultSet = statement.executeQuery()) {
                     // Verifica se a consulta à tabela não lança exceção
-                    // Isso indica que a tabela existe
+                    // Indica que a tabela existe
                     assertEquals(true, resultSet.next());
                 } catch (SQLException e) {
                     e.printStackTrace();
