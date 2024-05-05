@@ -7,7 +7,8 @@
         // Se usuário não existir, retorna NULL
     }
 
-    public static boolean verificaSenha(String senha){
+    public static boolean verificaSenha(String[] senha){
+        // Verificar a árvore de possíveis senhas
         return true;
     }
 
