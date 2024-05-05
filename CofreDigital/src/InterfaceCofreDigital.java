@@ -8,15 +8,19 @@ import java.util.Collections;
 public class InterfaceCofreDigital {
     private JFrame janelaPrincipal;
     private JTextField campoTextoEmail;
+    private JTextField campoTextoTOTP;
     private JButton botaoLogin;
     private JPasswordField campoSenha;
     private JPanel painelTeclas;
+    private JButton botaoOK;
+    private JButton botaoOkTOTP;
+    private ArrayList<String[]> possibilidadesSenha = new ArrayList<>();
 
     public InterfaceCofreDigital() {
-        prepararGUI();
+        mostrarTelaNomeLogin();
     }
 
-    private void prepararGUI() {
+    private void mostrarTelaNomeLogin() {
         janelaPrincipal = new JFrame("Cofre Digital - Autenticação");
         janelaPrincipal.setSize(500, 200);
         janelaPrincipal.setLayout(new BorderLayout());
@@ -50,7 +54,15 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
         janelaPrincipal.setVisible(true);
 
-        botaoLogin.addActionListener(e -> mostrarTelaSenha());
+        botaoLogin.addActionListener(e -> {
+            String email = campoTextoEmail.getText();
+            String[] usuario = AutenticaUsuario.usuarioExiste(email);
+            if (usuario != null) {
+                mostrarTelaSenha();
+            } else {
+                JOptionPane.showMessageDialog(janelaPrincipal, "E-mail não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        });
         botaoLimpar.addActionListener(e -> campoTextoEmail.setText(""));
     }
 
@@ -63,35 +75,55 @@ public class InterfaceCofreDigital {
     private void mostrarTelaSenha() {
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
-
+    
         JLabel rotuloCabecalho = new JLabel("Cofre Digital - Autenticação", JLabel.CENTER);
         janelaPrincipal.add(rotuloCabecalho, BorderLayout.NORTH);
-
+    
         JPanel painelSenha = new JPanel();
         campoSenha = new JPasswordField(20);
-        campoSenha.setEditable(false);
+        campoSenha.setEditable(true);  // Deve ser true para mostrar o texto da senha
         painelSenha.add(new JLabel("Senha pessoal:"));
         painelSenha.add(campoSenha);
         janelaPrincipal.add(painelSenha, BorderLayout.NORTH);
-
+    
         painelTeclas = new JPanel(new GridLayout(2, 5));
         redistribuirNumeros();
-
+    
         JPanel painelControle = new JPanel(new FlowLayout());
-        JButton botaoOK = new JButton("OK");
+        botaoOK = new JButton("OK"); // Apenas inicialize, não declare novamente
+        botaoOK.setEnabled(false);
         JButton botaoLimpar = new JButton("LIMPAR");
         painelControle.add(botaoOK);
         painelControle.add(botaoLimpar);
+    
+        botaoLimpar.addActionListener(e -> {
+            campoSenha.setText("");
+            botaoOK.setEnabled(false);
+        });
 
-        botaoLimpar.addActionListener(e -> campoSenha.setText(""));
+        botaoOK.addActionListener(e -> {
 
+            Boolean senhaValidada = AutenticaUsuario.verificaSenha(possibilidadesSenha);
+            if (senhaValidada) {
+                mostrarTelaTOTP();
+            } else {
+                JOptionPane.showMessageDialog(janelaPrincipal, "Senha Incorreta.", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+
+        });
+    
         janelaPrincipal.add(painelTeclas, BorderLayout.CENTER);
         janelaPrincipal.add(painelControle, BorderLayout.SOUTH);
-
+    
         janelaPrincipal.revalidate();
         janelaPrincipal.repaint();
     }
-
+    
+    private void validarComprimentoSenha() {
+        int comprimento = campoSenha.getPassword().length;
+        botaoOK.setEnabled(comprimento >= 8 && comprimento <= 10);
+    }
+    
     private void redistribuirNumeros() {
         painelTeclas.removeAll();
         ArrayList<Integer> numeros = new ArrayList<>();
@@ -99,14 +131,17 @@ public class InterfaceCofreDigital {
             numeros.add(i);
         }
         Collections.shuffle(numeros);
-
+    
         for (int i = 0; i < numeros.size(); i += 2) {
             int num1 = numeros.get(i);
             int num2 = numeros.get(i + 1);
             JButton botao = new JButton(num1 + " " + num2);
             painelTeclas.add(botao);
             botao.addActionListener(e -> {
-                campoSenha.setText(campoSenha.getText() + "*");
+                String[] nums = botao.getText().split(" ");
+                possibilidadesSenha.add(nums); // Armazena as possibilidades
+                campoSenha.setText(campoSenha.getText() + "*"); // Adiciona apenas uma bolinha
+                validarComprimentoSenha();
                 redistribuirNumeros();
                 janelaPrincipal.revalidate();
                 janelaPrincipal.repaint();
@@ -114,6 +149,48 @@ public class InterfaceCofreDigital {
         }
     }
 
+    private void mostrarTelaTOTP() { //Tudo errado
+        janelaPrincipal.getContentPane().removeAll();
+        janelaPrincipal.setLayout(new BorderLayout());
+    
+        JLabel rotuloCabecalho = new JLabel("Cofre Digital - Autenticação", JLabel.CENTER);
+        janelaPrincipal.add(rotuloCabecalho, BorderLayout.NORTH);
+
+        JPanel painelTOTP = new JPanel(new FlowLayout());
+        JLabel rotuloTOTP = new JLabel("TOTP:");
+        campoTextoTOTP = new JTextField(20);
+        campoTextoTOTP.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                validarComprimentoTOTP();
+            }
+        });
+    
+        painelTOTP.add(rotuloTOTP);
+        painelTOTP.add(campoTextoTOTP);
+
+        JPanel painelBotoes = new JPanel(new FlowLayout());
+        botaoOkTOTP = new JButton("OK");
+        JButton botaoLimpar = new JButton("LIMPAR");
+        painelBotoes.add(botaoOkTOTP);
+        painelBotoes.add(botaoLimpar);
+        botaoOkTOTP.setEnabled(false); // inicialmente desativado
+
+        janelaPrincipal.add(painelTOTP, BorderLayout.CENTER);
+        janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
+        janelaPrincipal.setVisible(true);
+
+        botaoOkTOTP.addActionListener(e -> {
+            System.out.println("TESTE");
+        });
+        botaoLimpar.addActionListener(e -> campoTextoEmail.setText(""));
+    }
+    
+    private void validarComprimentoTOTP() {
+        int comprimento = campoTextoTOTP.getText().length();
+        botaoOkTOTP.setEnabled(comprimento == 6);
+    }
+    
     public static void main(String[] args) {
         new InterfaceCofreDigital();
     }

@@ -1,4 +1,6 @@
- public class AutenticaUsuario {
+import java.util.ArrayList;
+
+public class AutenticaUsuario {
 
     public static String[] usuarioExiste(String email){
         // Se usuário existe no banco, retorna as informações do usuário
@@ -7,7 +9,7 @@
         // Se usuário não existir, retorna NULL
     }
 
-    public static boolean verificaSenha(String[] senha){
+    public static boolean verificaSenha(ArrayList<String[]> senha){
         // Verificar a árvore de possíveis senhas
         return true;
     }
