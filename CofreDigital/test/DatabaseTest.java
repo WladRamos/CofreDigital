@@ -1,5 +1,6 @@
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,18 +24,44 @@ public class DatabaseTest {
         database.initDatabase(); // Inicializa o banco de dados
 
         // Verifica se as tabelas foram criadas corretamente
-        try (Connection connection = database.getConnection()) {
+        try {
+            Connection connection = database.getConnection();
             String[] tables = {"Chaveiro", "Grupos", "Mensagens", "Usuarios", "Registros"};
-            for (String table : tables) {
-                try (PreparedStatement statement = connection.prepareStatement("SELECT * FROM " + table);
-                     ResultSet resultSet = statement.executeQuery()) {
-                    // Verifica se a consulta à tabela não lança exceção
-                    // Indica que a tabela existe
-                    assertEquals(true, resultSet.next());
-                } catch (SQLException e) {
-                    e.printStackTrace();
+            int[] expectedCounts = {0, 2, 57, 0, 0}; // Chaveiro, Grupos, Mensagens, Usuarios, Registros
+            
+            for (int i = 0; i < tables.length; i++) {
+                String table = tables[i];
+                // Verifica se a tabela existe no banco de dados
+                boolean tableExists = false;
+                PreparedStatement statement = connection.prepareStatement(
+                    "SELECT EXISTS (" +
+                    "    SELECT 1 " +
+                    "    FROM information_schema.tables " +
+                    "    WHERE table_schema = ? " +
+                    "    AND table_name = ?" +
+                    ")"
+                );
+                statement.setString(1, "CofreDigital");
+                statement.setString(2, table);
+                ResultSet resultSet = statement.executeQuery();
+                if (resultSet.next()) {
+                    tableExists = resultSet.getInt(1) == 1;
                 }
-            }
+                assertTrue("Tabela " + table + " não encontrada.", tableExists);
+
+                // Verifica se quantidade de entradas na tabela está correta
+                if (tableExists) {
+                    statement = connection.prepareStatement(
+                        "SELECT COUNT(*) FROM " + table
+                    );
+                    ResultSet countResult = statement.executeQuery();
+                    int count = 0;
+                    if (countResult.next()) {
+                        count = countResult.getInt(1);
+                    }
+                    assertEquals("Quantidade incorreta de entradas na tabela " + table, expectedCounts[i], count);
+                }
+            }        
         } catch (SQLException e) {
             e.printStackTrace();
         }
