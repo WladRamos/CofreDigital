@@ -230,13 +230,74 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(painelCorpo2, BorderLayout.SOUTH);
     
         // Definindo ações para os botões
-        //botaoCadastrar.addActionListener(e -> cadastrarUsuario());
+        botaoCadastrar.addActionListener(e -> mostrarTelaCadastro());
         //botaoConsultar.addActionListener(e -> consultarArquivos());
         botaoSair.addActionListener(e -> System.exit(0));
     
         janelaPrincipal.revalidate();
         janelaPrincipal.repaint();
     }
+
+    private void mostrarTelaCadastro() {
+
+        janelaPrincipal.getContentPane().removeAll();
+        janelaPrincipal.setLayout(new BorderLayout());
+    
+        JPanel painelCabecalho = new JPanel(new GridLayout(3, 1));
+        painelCabecalho.add(new JLabel("Login: " + campoTextoEmail.getText(), JLabel.CENTER));
+        painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
+        painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
+        janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
+        
+
+        Box verticalBox = Box.createVerticalBox();
+        JPanel painelCorpo1 = new JPanel(new FlowLayout());
+        painelCorpo1.add(new JLabel("Total de usuários do sistema: " + "totalUsuarios"));
+        verticalBox.add(painelCorpo1);
+    
+        JPanel painelCorpo2 = new JPanel(new GridLayout(6, 2, 5, 5)); 
+        painelCorpo2.add(new JLabel("Caminho do arquivo do certificado digital:"));
+        JTextField campoCertificado = new JTextField(20);
+        painelCorpo2.add(campoCertificado);
+    
+        painelCorpo2.add(new JLabel("Caminho do arquivo da chave privada:"));
+        JTextField campoChavePrivada = new JTextField(20);
+        painelCorpo2.add(campoChavePrivada);
+    
+        painelCorpo2.add(new JLabel("Frase secreta:"));
+        JTextField campoFraseSecreta = new JTextField(20);
+        painelCorpo2.add(campoFraseSecreta);
+    
+        painelCorpo2.add(new JLabel("Grupo:"));
+        JComboBox<String> comboBoxGrupo = new JComboBox<>(new String[]{"Administrador", "Usuário"});
+        painelCorpo2.add(comboBoxGrupo);
+    
+        painelCorpo2.add(new JLabel("Senha pessoal:"));
+        JPasswordField campoSenha = new JPasswordField(10);
+        painelCorpo2.add(campoSenha);
+    
+        painelCorpo2.add(new JLabel("Confirmação senha pessoal:"));
+        JPasswordField campoConfirmacaoSenha = new JPasswordField(10);
+        painelCorpo2.add(campoConfirmacaoSenha);
+
+        verticalBox.add(painelCorpo2);
+        janelaPrincipal.add(verticalBox, BorderLayout.CENTER);
+    
+        JPanel painelBotoes = new JPanel(new FlowLayout());
+        JButton botaoCadastrar = new JButton("Cadastrar");
+        JButton botaoVoltar = new JButton("Voltar");
+        painelBotoes.add(botaoCadastrar);
+        painelBotoes.add(botaoVoltar);
+    
+        janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
+    
+        janelaPrincipal.pack();
+        janelaPrincipal.setVisible(true);
+
+        //botaoCadastrar.addActionListener(e -> mostrarTelaCadastro());
+        botaoVoltar.addActionListener(e -> mostrarTelaMenu());
+    }
+    
 
     public static void main(String[] args) {
         new InterfaceCofreDigital();
