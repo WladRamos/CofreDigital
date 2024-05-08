@@ -66,6 +66,25 @@ public class InterfaceCofreDigital {
                 grupoUsuario = usuario[1];
                 qtdAcessosUsuario = usuario[2];
                 mostrarTelaSenha();
+
+                /* 
+                 * mudança de interface:
+                 * 
+                 * int uid = database.getUIDdoUsuarioIfExists(email)
+                 * HashMap<String, String> u = null
+                 * if (uid != -1)
+                 *      u = database.getInformacoesDoUsuario(uid);
+                 * if (u != null) {
+                 *     String nome = u.get("nome");
+                 *     String grupo = u.get("grupo");
+                 *     String acessos = u.get("numero_de_acessos");
+                 * }
+                 * 
+                 * Para usar os métodos de autenticação, passar o uid do usuário que 
+                 * deseja autanticar no construtor de Autenticação e aplicar os métodos
+                 * nessa instância.
+                 */
+
             } else {
                 JOptionPane.showMessageDialog(janelaPrincipal, "E-mail não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
             }
