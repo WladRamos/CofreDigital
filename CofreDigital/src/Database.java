@@ -4,6 +4,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.HashMap;
 
 public class Database {
 
@@ -86,7 +87,7 @@ public class Database {
         }
     }
 
-    // Tabelas do Banco de Dados CofreDigital
+    // Criação das Tabelas do Banco de Dados CofreDigital
 
     private void createTableUsuarios() {
         try {
@@ -172,7 +173,7 @@ public class Database {
         }
     }
 
-    // Busca e Manipulação no Banco de Dados CofreDigital
+    // Populando as Tabelas Mensagens e Grupos com as entradas pré-definidas
 
     private void populateTableMensagens(){
         try {
@@ -281,9 +282,9 @@ public class Database {
         }
     }
  
-    // todo: criar métodos de manipulação necessários e testar 
+    // Métodos de Busca e Manipulação no Banco de Dados CofreDigital
 
-    public int getUIDdoUsuario(String email) {
+    public int getUIDdoUsuarioIfExists(String email) {
         int uid = -1;
         String sql = "SELECT UID " +
                      "FROM Usuarios u " +
@@ -298,17 +299,17 @@ public class Database {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return -1;
         }
-        return uid;
+        return uid;     // Se usuário não encontrado, retorna -1
     }
 
-    public String[] getinformacoesDoUsuario(int uid){
-        // todo: pensar numa forma melhor de tratar as informações de uma tupla
-        String[] info = null;
+    public HashMap<String, String> getinformacoesDoUsuario(int uid){
+        HashMap<String, String> info = null;
         String sql = "SELECT UID, nome, grupo_nome " +
-                         "FROM Usuarios u " +
-                         "JOIN Grupos g ON u.grupo_fk = g.GID " +
-                         "WHERE u.UID = ?";
+                     "FROM Usuarios u " +
+                     "JOIN Grupos g ON u.grupo_fk = g.GID " +
+                     "WHERE u.UID = ?";
 
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
@@ -317,20 +318,26 @@ public class Database {
             if (resultSet.next()) {
                 String nome = resultSet.getString("nome");
                 String grupo = resultSet.getString("grupo_nome");
-                String acessos = countAcessosDoUsuario(uid);
-                info = new String[]{nome, grupo, acessos};
+                String numero_de_acessos = countAcessosDoUsuario(uid);
+                // Inserindo as informações do usuário no HashMap
+                info = new HashMap<>();
+                info.put("nome", nome);
+                info.put("grupo", grupo);
+                info.put("numero_de_acessos", numero_de_acessos);
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-        return info;
+        return info;     // Se usuário não encontrado, retorna null
     }
 
     private String countAcessosDoUsuario(int uid){
         String n_acessos = null;
         String sql = "SELECT COUNT(*) AS n_acessos " +
                      "FROM Registros " +
-                     "WHERE usuario_fk = ? AND mensagem_fk = 2003";     // duvida: conferir se a mensagem 2003 é o que configura um acesso (eu acho que sim)
+                     "WHERE usuario_fk = ? AND mensagem_fk = 2003";     // duvida: conferir se a mensagem 2003 é o que configura um acesso (acho que sim)
+        
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, uid);
@@ -340,8 +347,9 @@ public class Database {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-        return n_acessos;
+        return n_acessos;     // Se usuário não encontrado, retorna null
     }
 
     public String getHashDoUsuario(int uid){
@@ -359,8 +367,9 @@ public class Database {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-        return hash;
+        return hash;     // Se usuário não encontrado, retorna null
     }
 
     public String getChaveSecretaDoUsuario(int uid) {
@@ -378,8 +387,9 @@ public class Database {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            return null;
         }
-        return chaveSecreta;
+        return chaveSecreta;     // Se usuário não encontrado, retorna null
     }
 
 }
