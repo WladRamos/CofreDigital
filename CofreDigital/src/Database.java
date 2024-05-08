@@ -86,6 +86,8 @@ public class Database {
         }
     }
 
+    // Tabelas do Banco de Dados CofreDigital
+
     private void createTableUsuarios() {
         try {
             Statement statement = connection.createStatement();
@@ -157,7 +159,7 @@ public class Database {
             String sql = "CREATE TABLE IF NOT EXISTS Registros (" +
                          "RID BIGINT PRIMARY KEY AUTO_INCREMENT," +
                          "mensagem_fk INT," +
-                         "data DATETIME," +
+                         "timestamp DATETIME," +
                          "usuario_fk INT," +
                          "arquivo_selecionado_decriptacao VARCHAR(255)," +      // Não tenho certeza desse tipo 
                          "FOREIGN KEY (mensagem_fk) REFERENCES Mensagens(MID)," +
@@ -169,6 +171,8 @@ public class Database {
             e.printStackTrace();
         }
     }
+
+    // Busca e Manipulação no Banco de Dados CofreDigital
 
     private void populateTableMensagens(){
         try {
@@ -251,7 +255,7 @@ public class Database {
                 Statement statement = connection.createStatement();
         
                 statement.executeUpdate("INSERT INTO Grupos (GID, nome_grupo) VALUES (1, 'Administrador')");
-                statement.executeUpdate("INSERT INTO Grupos (GID, nome_grupo) VALUES (2, 'Usuário comum')");
+                statement.executeUpdate("INSERT INTO Grupos (GID, nome_grupo) VALUES (2, 'Usuário')");
                 
                 statement.close();
             } else {
@@ -277,6 +281,105 @@ public class Database {
         }
     }
  
-    // Fazer as funções necessárias a AutenticaUsuario e CadastraUsuario
+    // todo: criar métodos de manipulação necessários e testar 
+
+    public int getUIDdoUsuario(String email) {
+        int uid = -1;
+        String sql = "SELECT UID " +
+                     "FROM Usuarios u " +
+                     "WHERE u.email = ?";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, email);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                uid = resultSet.getInt("UID");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return uid;
+    }
+
+    public String[] getinformacoesDoUsuario(int uid){
+        // todo: pensar numa forma melhor de tratar as informações de uma tupla
+        String[] info = null;
+        String sql = "SELECT UID, nome, grupo_nome " +
+                         "FROM Usuarios u " +
+                         "JOIN Grupos g ON u.grupo_fk = g.GID " +
+                         "WHERE u.UID = ?";
+
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                String nome = resultSet.getString("nome");
+                String grupo = resultSet.getString("grupo_nome");
+                String acessos = countAcessosDoUsuario(uid);
+                info = new String[]{nome, grupo, acessos};
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return info;
+    }
+
+    private String countAcessosDoUsuario(int uid){
+        String n_acessos = null;
+        String sql = "SELECT COUNT(*) AS n_acessos " +
+                     "FROM Registros " +
+                     "WHERE usuario_fk = ? AND mensagem_fk = 2003";     // duvida: conferir se a mensagem 2003 é o que configura um acesso (eu acho que sim)
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                n_acessos = resultSet.getString("n_acessos");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return n_acessos;
+    }
+
+    public String getHashDoUsuario(int uid){
+        String hash = null;
+        String sql = "SELECT hash " +
+                     "FROM Usuarios u " +
+                     "WHERE u.UID = ?";
+        
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                hash = resultSet.getString("hash");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return hash;
+    }
+
+    public String getChaveSecretaDoUsuario(int uid) {
+        String chaveSecreta = null;
+        String sql = "SELECT chave_secreta " +
+                     "FROM Usuarios u " +
+                     "WHERE u.UID = ?";
+        
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                chaveSecreta = resultSet.getString("chave_secreta");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return chaveSecreta;
+    }
 
 }
