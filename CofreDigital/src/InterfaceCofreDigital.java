@@ -269,7 +269,7 @@ public class InterfaceCofreDigital {
     
         // Definindo ações para os botões
         botaoCadastrar.addActionListener(e -> mostrarTelaCadastro());
-        //botaoConsultar.addActionListener(e -> consultarArquivos());
+        botaoConsultar.addActionListener(e -> mostrarTelaConsulta());
         botaoSair.addActionListener(e -> System.exit(0));
     
         janelaPrincipal.revalidate();
@@ -376,6 +376,52 @@ public class InterfaceCofreDigital {
             mostrarTelaMenu();
         });
     }
+
+    private void mostrarTelaConsulta() {
+        janelaPrincipal.getContentPane().removeAll();
+        janelaPrincipal.setLayout(new BorderLayout());
+    
+        JPanel painelCabecalho = new JPanel(new GridLayout(3, 1));
+        painelCabecalho.add(new JLabel("Login: " + campoTextoEmail.getText(), JLabel.CENTER));
+        painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
+        painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
+        janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
+    
+        Box verticalBox = Box.createVerticalBox();
+    
+        JPanel painelCorpo1 = new JPanel(new FlowLayout());
+        painelCorpo1.add(new JLabel("Total de consultas do usuário: " + "qtdConsultas"));
+        verticalBox.add(painelCorpo1);
+    
+        JPanel painelCorpo2 = new JPanel(new GridLayout(6, 2, 5, 5));
+        painelCorpo2.add(new JLabel("Caminho da pasta:"));
+        painelCorpo2.add(new JTextField(20));
+        painelCorpo2.add(new JLabel("Frase secreta:"));
+        painelCorpo2.add(new JTextField(20));
+        JButton btnListar = new JButton("Listar");
+        painelCorpo2.add(new JLabel("")); // Adicionar um espaço vazio para alinhamento
+        painelCorpo2.add(btnListar);
+        JButton btnVoltar = new JButton("Voltar");
+        painelCorpo2.add(new JLabel("")); // Adicionar um espaço vazio para alinhamento
+        painelCorpo2.add(btnVoltar);
+        verticalBox.add(painelCorpo2);
+    
+        janelaPrincipal.add(verticalBox, BorderLayout.CENTER);
+    
+        // Tabela para listar arquivos secretos
+        String[] colunas = {"Nome do Arquivo", "Dono", "Grupo"};
+        Object[][] dados = {}; // Dados serão preenchidos posteriormente
+        JTable tabelaArquivos = new JTable(dados, colunas);
+        JScrollPane scrollPane = new JScrollPane(tabelaArquivos);
+        scrollPane.setPreferredSize(new Dimension(600, 100));
+        janelaPrincipal.add(scrollPane, BorderLayout.SOUTH);
+    
+        janelaPrincipal.pack(); // Ajusta o tamanho da janela aos componentes
+        janelaPrincipal.setVisible(true);
+    
+        btnVoltar.addActionListener(e -> mostrarTelaMenu());
+    }
+    
     
 
     public static void main(String[] args) {
