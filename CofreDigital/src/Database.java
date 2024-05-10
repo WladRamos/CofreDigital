@@ -408,4 +408,23 @@ public class Database {
         return countUsuarios;   // Se houver algum erro na consulta, retorna -1
     }
 
+    public int countAberturasDeArquivosUsuario(int uid) {
+        int countAberturas = -1;
+        String sql = "SELECT COUNT(*) AS n_aberturas_arquivos " +
+                     "FROM Registros " +
+                     "WHERE usuario_fk = ? AND mensagem_fk = 7014";     // duvida: conferir se a mensagem 7014 é o que configura um acesso ao arquivo (acho que sim)
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                countAberturas = resultSet.getInt("n_aberturas_arquivos");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+        return countAberturas;   // Se houver algum erro na consulta, retorna -1
+    }
+
 }
