@@ -3,7 +3,9 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 
 public class InterfaceCofreDigital {
     private JFrame janelaPrincipal;
@@ -66,7 +68,24 @@ public class InterfaceCofreDigital {
                 grupoUsuario = usuario[1];
                 qtdAcessosUsuario = usuario[2];
                 mostrarTelaSenha();
+                }
 
+                // Database database = Database.getInstance();
+                // String email = campoTextoEmail.getText();
+                // int uid = database.getUIDdoUsuarioIfExists(email);
+                // HashMap<String, String> u = null;
+                //     if (uid != -1)
+                //         u = database.getinformacoesDoUsuario(uid);
+                //     if (u != null) {
+                //         String nome = u.get("nome");
+                //         String grupo = u.get("grupo");
+                //         String acessos = u.get("numero_de_acessos");
+
+                //         nomeUsuario = nome;
+                //         grupoUsuario = grupo;
+                //         qtdAcessosUsuario = acessos;
+                //         mostrarTelaSenha();
+                //     }
                 /* 
                  * mudança de interface:
                  * 
@@ -85,7 +104,7 @@ public class InterfaceCofreDigital {
                  * nessa instância.
                  */
 
-            } else {
+            else {
                 JOptionPane.showMessageDialog(janelaPrincipal, "E-mail não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
             }
         });
@@ -250,7 +269,7 @@ public class InterfaceCofreDigital {
     
         // Definindo ações para os botões
         botaoCadastrar.addActionListener(e -> mostrarTelaCadastro());
-        //botaoConsultar.addActionListener(e -> consultarArquivos());
+        botaoConsultar.addActionListener(e -> mostrarTelaConsulta());
         botaoSair.addActionListener(e -> System.exit(0));
     
         janelaPrincipal.revalidate();
@@ -304,6 +323,7 @@ public class InterfaceCofreDigital {
     
         JPanel painelBotoes = new JPanel(new FlowLayout());
         JButton botaoCadastrar = new JButton("Cadastrar");
+        TratamentosBotaoCadastrar(botaoCadastrar, campoSenha, campoConfirmacaoSenha);
         JButton botaoVoltar = new JButton("Voltar");
         painelBotoes.add(botaoCadastrar);
         painelBotoes.add(botaoVoltar);
@@ -316,6 +336,92 @@ public class InterfaceCofreDigital {
         //botaoCadastrar.addActionListener(e -> mostrarTelaCadastro());
         botaoVoltar.addActionListener(e -> mostrarTelaMenu());
     }
+
+    private boolean validarSenhaCadastro(char[] senha) {
+        String senhaStr = new String(senha);
+        
+        if (senhaStr.length() < 8 || senhaStr.length() > 10) {
+            return false;
+        }
+        
+        for (int i = 0; i < senhaStr.length(); i++) {
+            if (!Character.isDigit(senhaStr.charAt(i))) {
+                return false;
+            }
+            
+            if (i > 0 && senhaStr.charAt(i) == senhaStr.charAt(i - 1)) {
+                return false;
+            }
+        }
+        
+        return true;
+    }
+
+    private void TratamentosBotaoCadastrar(JButton botaoCadastrar, JPasswordField campoSenha, JPasswordField campoConfirmacaoSenha) {
+        botaoCadastrar.addActionListener(e -> {
+            char[] senha = campoSenha.getPassword();
+            char[] confirmaSenha = campoConfirmacaoSenha.getPassword();
+    
+            if (!Arrays.equals(senha, confirmaSenha)) {
+                JOptionPane.showMessageDialog(janelaPrincipal, "As senhas não correspondem.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (!validarSenhaCadastro(senha)) {
+                JOptionPane.showMessageDialog(janelaPrincipal, "A senha deve ter de 8 a 10 dígitos.\nA senha não pode conter sequências de números repetidos.\nA senha deve ser formada apenas por digitos de 0 a 9.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+    
+            JOptionPane.showMessageDialog(janelaPrincipal, "Usuário cadastrado com sucesso!", "Cadastro", JOptionPane.INFORMATION_MESSAGE);
+            mostrarTelaMenu();
+        });
+    }
+
+    private void mostrarTelaConsulta() {
+        janelaPrincipal.getContentPane().removeAll();
+        janelaPrincipal.setLayout(new BorderLayout());
+    
+        JPanel painelCabecalho = new JPanel(new GridLayout(3, 1));
+        painelCabecalho.add(new JLabel("Login: " + campoTextoEmail.getText(), JLabel.CENTER));
+        painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
+        painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
+        janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
+    
+        Box verticalBox = Box.createVerticalBox();
+    
+        JPanel painelCorpo1 = new JPanel(new FlowLayout());
+        painelCorpo1.add(new JLabel("Total de consultas do usuário: " + "qtdConsultas"));
+        verticalBox.add(painelCorpo1);
+    
+        JPanel painelCorpo2 = new JPanel(new GridLayout(6, 2, 5, 5));
+        painelCorpo2.add(new JLabel("Caminho da pasta:"));
+        painelCorpo2.add(new JTextField(20));
+        painelCorpo2.add(new JLabel("Frase secreta:"));
+        painelCorpo2.add(new JTextField(20));
+        JButton btnListar = new JButton("Listar");
+        painelCorpo2.add(new JLabel("")); // Adicionar um espaço vazio para alinhamento
+        painelCorpo2.add(btnListar);
+        JButton btnVoltar = new JButton("Voltar");
+        painelCorpo2.add(new JLabel("")); // Adicionar um espaço vazio para alinhamento
+        painelCorpo2.add(btnVoltar);
+        verticalBox.add(painelCorpo2);
+    
+        janelaPrincipal.add(verticalBox, BorderLayout.CENTER);
+    
+        // Tabela para listar arquivos secretos
+        String[] colunas = {"Nome do Arquivo", "Dono", "Grupo"};
+        Object[][] dados = {}; // Dados serão preenchidos posteriormente
+        JTable tabelaArquivos = new JTable(dados, colunas);
+        JScrollPane scrollPane = new JScrollPane(tabelaArquivos);
+        scrollPane.setPreferredSize(new Dimension(600, 100));
+        janelaPrincipal.add(scrollPane, BorderLayout.SOUTH);
+    
+        janelaPrincipal.pack(); // Ajusta o tamanho da janela aos componentes
+        janelaPrincipal.setVisible(true);
+    
+        btnVoltar.addActionListener(e -> mostrarTelaMenu());
+    }
+    
     
 
     public static void main(String[] args) {
