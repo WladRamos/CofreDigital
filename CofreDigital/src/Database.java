@@ -392,4 +392,20 @@ public class Database {
         return chaveSecreta;     // Se usuário não encontrado, retorna null
     }
 
+    public int countUsuariosNoSistema() {
+        int countUsuarios = -1;
+        String sql = "SELECT COUNT(*) AS total_usuarios FROM Usuarios";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                countUsuarios = resultSet.getInt("total_usuarios");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+        return countUsuarios;   // Se houver algum erro na consulta, retorna -1
+    }
+
 }
