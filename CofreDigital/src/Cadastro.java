@@ -1,4 +1,8 @@
+import static org.junit.Assert.assertNotNull;
+
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import javax.crypto.*;
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
@@ -10,34 +14,164 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.*;
 
 public class Cadastro {
-    
-    // Métodos para realizar o cadastro de um novo usuário do Cofre Digital
+    private X509Certificate certificado;
+    private PrivateKey chavePrivada;
+    private PublicKey chavePublica;
 
-    public boolean cadastraUsuario(){
-        // todo: chamar funções de insert no banco
-        return true;
+    private String caminhoCertificadoDigital, caminhoChavePrivada;
+
+    // Informações do usuário para o banco de dados
+    String nomeUsuario, emailUsuario, hashUsuario, chaveSecretaTOTP;
+    String chavePrivadaBin, certificadoDigitalPEM;
+
+
+    // Métodos para o cadastro de um novo usuário do Cofre Digital    
+
+    // Métodos de verificação das entradas de cadastro
+
+    public boolean verificaCaminhoCertificadoDigital(String caminhoCertificadoDigitalInput) {
+        if (verificaCaminhoDoArquivo(caminhoCertificadoDigitalInput)){
+            this.caminhoCertificadoDigital = caminhoCertificadoDigitalInput;
+            return true;
+        }
+        return false;
     }
 
-    // todo: funções publicas que retornam apenas os booleanos para as verificações (wrappers)
-
-    public X509Certificate generateObjetoCertificadoDigital(String caminhoCertificadoDigital) throws Exception {
-        FileInputStream file = new FileInputStream(caminhoCertificadoDigital);
-        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        Certificate certificado = cf.generateCertificate(file);
-        file.close();
-
-        if (certificado instanceof X509Certificate) {
-            try{
-                ((X509Certificate)certificado).checkValidity();
-                return (X509Certificate) certificado;
-            } catch (Exception e) {
-                return null;
-            }
-        } 
-        return null;
+    public boolean verificaCertificadoDigital() throws Exception {
+        try{
+            X509Certificate x509certificate = ManipuladorDeChaves.generateObjetoCertificadoDigitalFromArquivo(caminhoCertificadoDigital);
+            if (x509certificate != null) {
+                PublicKey pubkey = certificado.getPublicKey();
+                if (pubkey != null) {
+                    this.certificado = x509certificate;
+                    this.chavePublica = pubkey;
+                    return true;
+                }                
+            } 
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }        
     }
 
-    public String extrairNomeDoCertificadoDigital(X509Certificate certificado) {
+    public boolean verificaCaminhoChavePrivada(String caminhoChavePrivadaInput) {
+        if (verificaCaminhoDoArquivo(caminhoChavePrivadaInput)){
+            this.caminhoChavePrivada = caminhoChavePrivadaInput;
+            return true;
+        }
+        return false;
+    }
+
+    public boolean verificaFraseSecretaDaChavePrivada(String fraseSecreta) {
+        try{
+            PrivateKey pkey = ManipuladorDeChaves.generateObjetoChavePrivadaFromArquivo(caminhoChavePrivada, fraseSecreta);
+            if (pkey != null) {
+                this.chavePrivada = pkey;
+                return true;
+            } 
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean verificaChavePrivadaComChavePublica() {
+        try {
+            boolean chavePrivadaVerificada = ManipuladorDeChaves.verificaChavePrivadaComChavePublica(chavePrivada, chavePublica);
+            return chavePrivadaVerificada;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+       
+    public boolean verificaSenhasIguais(String senha, String confirmarSenha) {
+        /* Verificação de formato de senha em tempo real será feito pela interface:
+        * As senhas pessoais são sempre formadas por oito, nove ou dez números formados por dígitos de 0 a 9. 
+        * Não podem ser aceitas sequências de números repetidos.
+        * Método verificaSenhasIguais(senha, confirmaSenha) considera o recebimento de senhas com formato já validado.
+        */
+        if(senha.equals(confirmarSenha)) {
+            this.hashUsuario = ManipuladorDeChaves.generateHashDaSenha(senha);
+            return true;
+        }
+        return false;
+    }
+
+    // Método de confirmação das informações de cadastro
+
+    public HashMap<String, String> getDetalhesDoCertificadoDigital() throws CertificateParsingException {
+        HashMap<String, String> certificadoMap = new HashMap<>();
+        try{
+            // Extrair a versão do certificado
+            String versao = String.valueOf(certificado.getVersion());
+            certificadoMap.put("versao", versao);
+
+            // Extrair a série do certificado
+            byte[] serieBytes = certificado.getSerialNumber().toByteArray();
+            String serie = ManipuladorDeChaves.byteArrayToHexString(serieBytes);
+            certificadoMap.put("serie", serie);
+
+            // Extrair a data de validade do certificado
+            Date validadeInicio = certificado.getNotBefore(), validadeFim = certificado.getNotAfter();
+            String validade = "De " + validadeInicio + " até " + validadeFim;
+            certificadoMap.put("validade", validade);
+
+            // Extrair o tipo de assinatura do certificado
+            String tipoAssinatura = certificado.getSigAlgName();
+            certificadoMap.put("tipo_assinatura", tipoAssinatura);
+
+            // Extrair o emissor do certificado
+            String emissor = certificado.getIssuerX500Principal().toString();   // duvida: É para informar o emissor assim: "EMAILADDRESS=ca@grad.inf.puc-rio.br, CN=AC INF1416, OU=INF1416, O=PUC, L=Rio, ST=RJ, C=BR" ou mostrar apenas nome e email para confirmação?
+            certificadoMap.put("emissor", emissor);
+            
+            // Extrair o sujeito (friendly name) do certificado
+            String friendlyName = extrairNomeDoCertificadoDigital(certificado);
+            certificadoMap.put("sujeito", friendlyName);
+            this.nomeUsuario = friendlyName;
+
+            // Extrair o email do sujeito do certificado
+            String email = extrairEmailDoCertificadoDigital(certificado);
+            certificadoMap.put("email", email);
+            this.emailUsuario = email;
+
+            return certificadoMap;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }        
+    }
+
+    // Método de cadastro das informações confirmadas no banco de dados do Cofre Digital
+
+    public String cadastraUsuario(int grupo) {
+        // Checar recebimento correto de todas as informações de cadastro
+        if (grupo != 1 && grupo != 2) {
+            System.err.println("Grupo inválido. Escolha 1 para Administrador ou 2 para Usuário.");
+            return null;
+        }
+        // todo: checar se há todos os itens neccessários e chamar funções de insert no banco
+        return "chave secreta totp";
+    }
+
+    // Métodos auxiliares do cadastro de um novo usuário do Cofre Digital
+
+    private boolean verificaCaminhoDoArquivo(String caminhoArquivo) {
+        try {
+            FileInputStream arquivoInputStream = new FileInputStream(caminhoArquivo);
+            arquivoInputStream.close(); 
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private String extrairNomeDoCertificadoDigital(X509Certificate certificado) {
         String identificador = certificado.getSubjectX500Principal().getName();
         String[] partes = identificador.split(",");
         for (String parte : partes) {
@@ -48,7 +182,7 @@ public class Cadastro {
         return null;
     }
 
-    public String extrairEmailDoCertificadoDigital(X509Certificate certificado) throws CertificateParsingException {
+    private String extrairEmailDoCertificadoDigital(X509Certificate certificado) {
         String identificador = certificado.getSubjectX500Principal().toString();
         String[] partes = identificador.split(",");
         for (String parte : partes) {
@@ -59,74 +193,5 @@ public class Cadastro {
         return null;
     }
 
-    public void extrairVersaoSerieValidadeTipoDeAssinaturaEmissorDoCertificadoDigital(X509Certificate certificado) throws CertificateParsingException {
-        // todo
-    }
-
-    public PrivateKey generateObjetoChavePrivada(String caminhoChavePrivada, String fraseSecreta) {
-        try {
-            FileInputStream chavePrivadaInputStream = new FileInputStream(caminhoChavePrivada);
-            byte[] chavePrivadaBytes = chavePrivadaInputStream.readAllBytes();
-            chavePrivadaInputStream.close();
-
-            // Descriptografando a chave privada utilizando a frase secreta
-            SecretKey Kaes = ChaveSecreta.generateKaes(fraseSecreta);
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, Kaes);
-            byte[] chavePrivadaDescriptografada = cipher.doFinal(chavePrivadaBytes);
-
-            // Decodificando a chave privada descriptografada do formato PEM para o formato binário
-            PKCS8EncodedKeySpec chavePrivadaSpec = new PKCS8EncodedKeySpec(chavePrivadaDescriptografada);
-            KeyFactory keyFactory = KeyFactory.getInstance("RSA");      // duvida: qual o algoritmo da chave?
-            PrivateKey chavePrivada = keyFactory.generatePrivate(chavePrivadaSpec);
-            
-            return chavePrivada;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-
-    }
-
-    public boolean verificaChavePrivada(PrivateKey chavePrivada, X509Certificate certificado) {
-        try {
-            // Gerando array aleatório de 4096 bytes
-            byte[] arrayAleatorio = new byte[4096];
-            new SecureRandom().nextBytes(arrayAleatorio);
-
-            // Assinando o array aleatório usando a chave privada
-            Signature assinatura = Signature.getInstance("SHA256withRSA");      // duvida: qual o algoritmo?    
-            assinatura.initSign(chavePrivada);
-            assinatura.update(arrayAleatorio);
-            byte[] assinaturaBytes = assinatura.sign();
-
-            // Verificando a assinatura usando a chave pública
-            PublicKey chavePublica = certificado.getPublicKey();
-            assinatura.initVerify(chavePublica);
-            assinatura.update(arrayAleatorio);
-            boolean chavePrivadaVerificada = assinatura.verify(assinaturaBytes);
-
-            return chavePrivadaVerificada;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
-   
-    public String generateHashDaSenha(String senha) {
-        // Gerando um SALT aleatório
-        int tamanhoSalt = 16; // 16 bytes = 128 bits
-        byte[] saltBytes = new byte[tamanhoSalt];
-        new SecureRandom().nextBytes(saltBytes);
-
-        // Convertendo os bytes em uma string Base64
-        String salt = Base64.getEncoder().encodeToString(saltBytes);
-
-        // Gerando o hash para a senha informada
-        String hash = OpenBSDBCrypt.generate(senha.toCharArray(), salt.getBytes(), 12);
-        return hash;
-    }
-    
  }
+ 
