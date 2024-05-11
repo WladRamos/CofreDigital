@@ -57,7 +57,7 @@ public class Autenticacao {
         SecretKey chaveAES = ManipuladorDeChaves.generateKaes(senha);
 
         // Decriptar a chave secreta com a Kaes gerada
-        byte[] chaveSecretaCodificadaBase32Array = ManipuladorDeChaves.decryptChave(chaveSecretaCodificadaBase32Cifrada, chaveAES);
+        byte[] chaveSecretaCodificadaBase32Array = ManipuladorDeChaves.decryptChave(chaveSecretaCodificadaBase32Cifrada.getBytes("UTF-8"), chaveAES);
         String chaveSecretaCodificadaBase32 = new String(chaveSecretaCodificadaBase32Array, "UTF8");
 
         // Verificar se o código inserido pelo usuário está correto
