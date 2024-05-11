@@ -7,14 +7,14 @@ public class TOTPTest {
     public void testGenerateCode() {
         try {
             // Cria uma instância da classe TOTP com uma chave secreta e um intervalo de tempo de 30 segundos
-            TOTP totp = new TOTP("JBSWY3DPEHPK3PXP", 30);
+            TOTP totp = new TOTP("BQOCDDA4Q6QDAFVOZULR3NQQ4QAG5WPB", 30);
             // Gera um código TOTP
             String code = totp.generateCode();
             // Verifica se o código gerado não é nulo ou vazio ou inválido
+            System.out.println("TOTP code: " + code);
             assertNotNull(code);
             assertFalse(code.isEmpty());
             assertTrue(isTOTPValid(code));
-            System.out.println("Generated TOTP code: " + code);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -39,7 +39,7 @@ public class TOTPTest {
     public void testValidateCode() {
         try {
             // Cria uma instância da classe TOTP com uma chave secreta e um intervalo de tempo de 30 segundos
-            TOTP totp = new TOTP("JBSWY3DPEHPK3PXP", 30);
+            TOTP totp = new TOTP("BQOCDDA4Q6QDAFVOZULR3NQQ4QAG5WPB", 30);
             // Gera um código TOTP
             String code = totp.generateCode();
             // Verifica se o código gerado é válido
