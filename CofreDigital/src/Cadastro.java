@@ -22,7 +22,8 @@ public class Cadastro {
 
     // Informações do usuário para o banco de dados
     String nomeUsuario, emailUsuario, hashUsuario, chaveSecretaTOTP;
-    String chavePrivadaBin, certificadoDigitalPEM;
+    String certificadoDigitalPEM;
+    byte[] chavePrivadaBin;
 
 
     // Métodos para o cadastro de um novo usuário do Cofre Digital    
@@ -149,6 +150,7 @@ public class Cadastro {
     // Método de cadastro das informações confirmadas no banco de dados do Cofre Digital
 
     public String cadastraUsuario(int grupo) {
+        this.chavePrivadaBin = ManipuladorDeChaves.generateChavePrivadaBin(caminhoChavePrivada);
         // Checar recebimento correto de todas as informações de cadastro
         if (grupo != 1 && grupo != 2) {
             System.err.println("Grupo inválido. Escolha 1 para Administrador ou 2 para Usuário.");
