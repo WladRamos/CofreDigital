@@ -6,6 +6,8 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.crypto.*;
 
@@ -48,11 +50,11 @@ public class ManipuladorDeChaves {
         }
     }
 
-    public static byte[] encryptChave(String chave, SecretKey chaveAES) throws Exception {
+    public static byte[] encryptChave(byte[] chave, SecretKey chaveAES) throws Exception {
         try{
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.ENCRYPT_MODE, chaveAES);
-            byte[] chaveCifrada = cipher.doFinal(chave.getBytes("UTF-8"));
+            byte[] chaveCifrada = cipher.doFinal(chave);
             return chaveCifrada;
 
         } catch(Exception e) {
@@ -61,11 +63,11 @@ public class ManipuladorDeChaves {
         } 
     }
 
-    public static byte[] decryptChave(String chave, SecretKey chaveAES) throws Exception {
+    public static byte[] decryptChave(byte[] chave, SecretKey chaveAES) throws Exception {
         try{
             Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, chaveAES);
-            byte[] chaveDescriptografada = cipher.doFinal(chave.getBytes("UTF-8"));
+            byte[] chaveDescriptografada = cipher.doFinal(chave);
             return chaveDescriptografada;
 
         } catch(Exception e) {
@@ -84,17 +86,6 @@ public class ManipuladorDeChaves {
         return buf.toString();
     }
 
-    public static byte[] hexStringToByteArray(String hex) {
-        int len = hex.length();
-        byte[] byteArray = new byte[len / 2];
-
-        for (int i = 0; i < len; i += 2) {
-            byteArray[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
-                    + Character.digit(hex.charAt(i + 1), 16));
-        }
-        return byteArray;
-    }
-
     public static X509Certificate generateObjetoCertificadoDigitalFromArquivo(String caminhoCertificadoDigital) throws Exception {
         try{
             // Criando um FileInputStream a partir do arquivo do certificado
@@ -106,6 +97,20 @@ public class ManipuladorDeChaves {
 
             return certificado;
             
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static byte[] generateCertificadoDigitalPEM(String caminhoCertificadoDigital) {
+        try{
+            // Criando um FileInputStream a partir do arquivo do certificado
+            FileInputStream file = new FileInputStream(caminhoCertificadoDigital);
+            byte[] certificadoBytes = file.readAllBytes();
+            file.close();
+
+            return certificadoBytes;            
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -144,6 +149,17 @@ public class ManipuladorDeChaves {
         return certificadoStr.trim();
     }
 
+    public static String extrairCertificadoComMarcacoes(String certificadoCompleto) {
+        Pattern pattern = Pattern.compile("(-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----)", Pattern.DOTALL);
+        Matcher matcher = pattern.matcher(certificadoCompleto);
+
+        if (matcher.find()) {
+            return matcher.group(1).trim();
+        } else {
+            return null;
+        }
+    }
+    
     public static PrivateKey generateObjetoChavePrivadaFromArquivo(String caminhoChavePrivada, String fraseSecreta) {
         try {
             FileInputStream chavePrivadaInputStream = new FileInputStream(caminhoChavePrivada);
@@ -185,33 +201,28 @@ public class ManipuladorDeChaves {
         return chavePrivadaStr.trim();
     }
 
-    public static String generateChavePrivadaBin(String caminhoChavePrivada) {
+    public static byte[] generateChavePrivadaBin(String caminhoChavePrivada) {
         try {
             FileInputStream chavePrivadaInputStream = new FileInputStream(caminhoChavePrivada);
             byte[] chavePrivadaBytes = chavePrivadaInputStream.readAllBytes();
             chavePrivadaInputStream.close();
-            String chavePrivadaBin = new String(chavePrivadaBytes, "UTF-8");
 
-            return chavePrivadaBin;
+            return chavePrivadaBytes;
         } catch(Exception e) {
             e.printStackTrace();
             return null;
         }
-
     }
 
-    public static PrivateKey generateObjetoChavePrivadaFromBin(String chavePrivadaCriptografada, String fraseSecreta) {
+    public static PrivateKey generateObjetoChavePrivadaFromBin(byte[] chavePrivadaCriptografada, String fraseSecreta) {
         try {
-            byte[] chavePrivadaBytes = chavePrivadaCriptografada.getBytes("UTF-8");
-
             // Descriptografando a chave privada utilizando a frase secreta
             SecretKey Kaes = ManipuladorDeChaves.generateKaes(fraseSecreta);
-            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
-            cipher.init(Cipher.DECRYPT_MODE, Kaes);
-            byte[] chavePrivadaDescriptografada = cipher.doFinal(chavePrivadaBytes);
+            byte[] chavePrivadaDescriptografada = decryptChave(chavePrivadaCriptografada, Kaes);
 
             // Retirando cabeçalho, rodapé e line breaks
             String chavePrivadaDescriptografadaStr = new String(chavePrivadaDescriptografada, "UTF-8");
+            System.out.println("chave no generate: " + chavePrivadaDescriptografadaStr);
             String chavePrivadaDescriptografadaStrTratada = removerMarcacoesChavePrivada(chavePrivadaDescriptografadaStr);
             
             // Decodificando a chave privada descriptografada e tratada
@@ -256,17 +267,12 @@ public class ManipuladorDeChaves {
     }
     
     public static String generateHashDaSenha(String senha) {
-        // todo: checar se é assim que gera o salt
         // Gerando um SALT aleatório
-        int tamanhoSalt = 16; // 16 bytes = 128 bits
-        byte[] saltBytes = new byte[tamanhoSalt];
-        new SecureRandom().nextBytes(saltBytes);
-
-        // Convertendo os bytes em uma string Base64
-        String salt = Base64.getEncoder().encodeToString(saltBytes);
+        final byte[] salt = new byte[16];  // 16 bytes 
+        new SecureRandom().nextBytes(salt);
 
         // Gerando o hash para a senha informada
-        String hash = OpenBSDBCrypt.generate(senha.toCharArray(), salt.getBytes(), 12);
+        String hash = OpenBSDBCrypt.generate(senha.toCharArray(), salt, 12);
         return hash;
     }
     
