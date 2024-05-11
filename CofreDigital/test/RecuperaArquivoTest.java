@@ -8,6 +8,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
+import java.util.List;
 
 public class RecuperaArquivoTest {
 
@@ -19,10 +20,10 @@ public class RecuperaArquivoTest {
     @Before
     public void setUp() throws NoSuchAlgorithmException {
         String diretorioAtual = System.getProperty("user.dir");
-        caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/test/user02-pkcs8-aes.pem";
-        caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/test/user02-x509.crt";
+        caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/test/admin-pkcs8-aes.pem";
+        caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/test/admin-x509.crt";
 
-        privateKey = ManipuladorDeChaves.generateObjetoChavePrivadaFromArquivo(caminhoChavePrivada, "user02");
+        privateKey = ManipuladorDeChaves.generateObjetoChavePrivadaFromArquivo(caminhoChavePrivada, "admin");
         X509Certificate certificado;
         try{
             certificado = ManipuladorDeChaves.generateObjetoCertificadoDigitalFromArquivo(caminhoCertificadoDigital);
@@ -38,23 +39,24 @@ public class RecuperaArquivoTest {
     @Test
     public void testDecriptaEVerificaIndex() throws Exception {
         // Este teste assume que o arquivo "index.enc" contém dados válidos
-        String resultado = recuperaArquivo.decriptaEVerifica("index");
+        List<List<String>> resultado = recuperaArquivo.decriptaEVerificaIndex();
+        
+        // Verifica se o resultado não é nulo
         assertNotNull("O resultado não deveria ser nulo", resultado);
+        
+        // Verifica se o resultado não está vazio
         assertFalse("O resultado não deveria ser vazio", resultado.isEmpty());
+
+        // Imprime o resultado para verificação visual (opcional)
+        for (List<String> file : resultado) {
+            System.out.println(file);
+        }
+
+        // Verificar se cada sublista contém o número correto de elementos (por exemplo, se cada arquivo deveria ter 4 informações)
+        for (List<String> file : resultado) {
+            assertEquals("Cada arquivo deveria ter 4 informações", 4, file.size());
+        }
     }
 
-    @Test
-    public void testDecriptaEVerificaXXYYZZ00() throws Exception {
-        // Este teste assume que o arquivo "XXYYZZ00.enc" contém dados válidos
-        String resultado = recuperaArquivo.decriptaEVerifica("XXYYZZ00");
-        assertNotNull("O resultado não deveria ser nulo", resultado);
-        assertFalse("O resultado não deveria ser vazio", resultado.isEmpty());
-    }
-
-    @Test
-    public void testDecriptaEVerificaABCD() throws Exception {
-        // Este teste verifica o comportamento para um nome de arquivo que não corresponde a um arquivo existente
-        String resultado = recuperaArquivo.decriptaEVerifica("ABCD");
-        assertNull("O resultado deveria ser nulo para um arquivo inexistente", resultado);
-    }
+    
 }

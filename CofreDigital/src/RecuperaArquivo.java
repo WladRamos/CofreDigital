@@ -7,7 +7,11 @@ import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+import java.util.Arrays;
+
 
 public class RecuperaArquivo {
 
@@ -25,7 +29,50 @@ public class RecuperaArquivo {
         this.privateKey = privateKey;
     }
 
-    public String decriptaEVerifica(String nomeArquivo) throws Exception {
+    public List<List<String>> decriptaEVerificaIndex() throws Exception {
+        // Checa se os arquivos necessários existem
+        if (!arquivoExiste("index.env") || !arquivoExiste("index.enc") || !arquivoExiste("index.asd")) {
+            return null;
+        }
+
+        // Decripta a semente da chave simétrica
+        byte[] bytesEnvelope = lerBytes(pastaSegura + "/" +"index.env");
+        Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
+        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        byte[] semente = cipher.doFinal(bytesEnvelope);
+
+        // Cria a chave AES a partir da semente
+        Key keyAES = ManipuladorDeChaves.generateKaes(new String(semente, "UTF-8"));
+
+        // Decripta o arquivo de índice
+        byte[] bytesCriptograma = lerBytes(pastaSegura + "/" + "index.enc");
+        cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+        cipher.init(Cipher.DECRYPT_MODE, keyAES);
+        byte[] textoPlano = cipher.doFinal(bytesCriptograma);
+
+        //Verifica a assinatura
+        byte[] signatureBytes = lerBytes(pastaSegura + "/" + "index.asd");
+        Signature signature = Signature.getInstance("SHA1withRSA");
+        signature.initVerify(publicKey);
+        signature.update(textoPlano);
+        if (!signature.verify(signatureBytes)) {
+            throw new SecurityException("A assinatura digital não é válida.");
+        }
+
+        // Converte o texto plano em uma lista de listas
+        String decodedText = new String(textoPlano, "UTF-8");
+        List<List<String>> fileList = new ArrayList<>();
+        String[] lines = decodedText.split("\n");
+        for (String line : lines) {
+            List<String> fileInfo = Arrays.asList(line.trim().split("\\s+"));
+            fileList.add(fileInfo);
+        }
+
+        return fileList;
+        //return filtro(new String(textoPlano));
+    }
+
+    public String decriptaEVerificaArquivos(String nomeArquivo) throws Exception {
         // Checa se os arquivos necessários existem
         if (!arquivoExiste(nomeArquivo + ".env") || !arquivoExiste(nomeArquivo + ".enc") || !arquivoExiste(nomeArquivo + ".asd")) {
             return null;
@@ -78,7 +125,10 @@ public class RecuperaArquivo {
     }
 
     private byte[] lerBytes(String caminho) throws IOException {
-        return Files.readAllBytes(new File(caminho).toPath());
+        FileInputStream file = new FileInputStream(caminho);
+        byte[] Bytesarquivo = file.readAllBytes();
+        file.close();
+        return Bytesarquivo;
     }
 
     private boolean arquivoExiste(String nomeArquivo) {
