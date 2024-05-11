@@ -24,7 +24,8 @@ public class InterfaceCofreDigital {
 
 
     public InterfaceCofreDigital() {
-        mostrarTelaNomeLogin();
+        //mostrarTelaNomeLogin();
+        mostrarTelaCadastro();
     }
 
     private void mostrarTelaNomeLogin() {
@@ -264,8 +265,6 @@ public class InterfaceCofreDigital {
 
     private void mostrarTelaCadastro() {
 
-        //VALIDAR SE O GRUPO FOI SELECIONADO
-
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
@@ -295,7 +294,7 @@ public class InterfaceCofreDigital {
         painelCorpo2.add(campoFraseSecreta);
     
         painelCorpo2.add(new JLabel("Grupo:"));
-        JComboBox<String> comboBoxGrupo = new JComboBox<>(new String[]{"Administrador", "Usuário"});
+        JComboBox<String> comboBoxGrupo = new JComboBox<>(new String[]{"Usuário", "Administrador"});
         painelCorpo2.add(comboBoxGrupo);
     
         painelCorpo2.add(new JLabel("Senha pessoal:"));
