@@ -97,7 +97,7 @@ public class Database {
                          "email VARCHAR(300) NOT NULL UNIQUE," +
                          "nome VARCHAR(200) NOT NULL," +
                          "hash VARCHAR(60) NOT NULL," +
-                         "chave_secreta VARCHAR(255) NOT NULL," +    // Não tenho certeza desse tipo para a chave_secreta
+                         "chave_secreta VARCHAR(32) NOT NULL," +
                          "chaveiro_fk INT," +
                          "grupo_fk INT," +
                          "FOREIGN KEY (chaveiro_fk) REFERENCES Chaveiro(KID)," +
@@ -425,6 +425,37 @@ public class Database {
             return -1;
         }
         return countAberturas;   // Se houver algum erro na consulta, retorna -1
+    }
+
+    public void insertPrivateKey(byte[] pkey) {
+        String sql = "INSERT INTO Chaveiro (chave_privada_criptografada)  VALUES(?)";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setBytes(1, pkey);
+            statement.executeQuery();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public byte[] getPrivateKey(int uid) {
+        byte[] pkey = null;
+        String sql = "SELECT chave_privada_criptografada " +
+                     "FROM Chaveiro c " +
+                     "JOIN Usuarios u ON u.chaveiro_fk = c.KID " +
+                     "WHERE u.UID = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                pkey = resultSet.getBytes("chave_privada_criptografada");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+        return pkey;     // Se chaveiro do usuário não encontrado, retorna null
     }
 
 }
