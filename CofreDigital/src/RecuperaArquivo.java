@@ -1,15 +1,11 @@
 import javax.crypto.Cipher;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
-import java.nio.file.Files;
 import java.security.Key;
-import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.Arrays;
 
 
@@ -17,14 +13,14 @@ import java.util.Arrays;
 public class RecuperaArquivo {
 
     private String emailUsuario;
-    private String grupoUsuario;
+    //private String grupoUsuario;
     private String pastaSegura;
     private PublicKey publicKey;
     private PrivateKey privateKey;
 
     public RecuperaArquivo(String emailUsuario, String grupoUsuario, String pastaSegura, PublicKey publicKey, PrivateKey privateKey) {
         this.emailUsuario = emailUsuario;
-        this.grupoUsuario = grupoUsuario;
+        //this.grupoUsuario = grupoUsuario;
         this.pastaSegura = pastaSegura;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
@@ -61,16 +57,15 @@ public class RecuperaArquivo {
         }
 
         // Converte o texto plano em uma lista de listas
-        String decodedText = new String(textoPlano, "UTF-8");
-        List<List<String>> fileList = new ArrayList<>();
-        String[] lines = decodedText.split("\n");
-        for (String line : lines) {
-            List<String> fileInfo = Arrays.asList(line.trim().split("\\s+"));
-            fileList.add(fileInfo);
+        String conteudoIndex = new String(textoPlano, "UTF-8");
+        List<List<String>> listaArquivos = new ArrayList<>();
+        String[] linhas = conteudoIndex.split("\n");
+        for (String linha : linhas) {
+            List<String> infoArquivo = Arrays.asList(linha.trim().split("\\s+"));
+            listaArquivos.add(infoArquivo);
         }
 
-        return fileList;
-        //return filtro(new String(textoPlano));
+        return filtro(listaArquivos);
     }
 
     public void decriptaEVerificaArquivos(String nomeCodigo, String nomeSecreto) throws Exception {
@@ -112,19 +107,16 @@ public class RecuperaArquivo {
         
     }
 
-    private String filtro(String textoPlano) {
-        StringBuilder resultado = new StringBuilder();
-        Scanner scanner = new Scanner(textoPlano);
-        while (scanner.hasNextLine()) {
-            String linha = scanner.nextLine();
-            // String[] partes = linha.split(" ");
-            // if (partes[2].equals(emailUsuario) || parts[3].equals(grupoUsuario)) {
-            //     resultado.append(linha).append("\n");
-            // }
-            resultado.append(linha).append("\n");
+    private List<List<String>> filtro(List<List<String>> listaArquivos) {
+        List<List<String>> listaFiltrada = new ArrayList<>();
+    
+        for (List<String> sublista : listaArquivos) {
+            if (sublista.get(2).equals(emailUsuario)) {
+                listaFiltrada.add(new ArrayList<>(sublista));
+            }
         }
-        scanner.close();
-        return resultado.toString();
+        return listaFiltrada; 
+        
     }
 
     private byte[] lerBytes(String caminho) throws IOException {

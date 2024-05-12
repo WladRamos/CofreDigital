@@ -1,9 +1,7 @@
 import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.io.File;
-import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -33,7 +31,7 @@ public class RecuperaArquivoTest {
         }
         
         // Configurando a instância da classe RecuperaArquivo
-        recuperaArquivo = new RecuperaArquivo("user@example.com", "usuario", "CofreDigital/Pacote-T4/Files/", publicKey, privateKey);
+        recuperaArquivo = new RecuperaArquivo("admin@inf1416.puc-rio.br", "administrador", "CofreDigital/Pacote-T4/Files/", publicKey, privateKey);
     }
 
     @Test
