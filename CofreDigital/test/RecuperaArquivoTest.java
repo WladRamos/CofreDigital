@@ -58,5 +58,24 @@ public class RecuperaArquivoTest {
         }
     }
 
-    
+    @Test
+    public void testDecriptaEVerificaXXYYZZ00() throws Exception {
+        String nomeSecreto = "teste00.docx";
+        String nomeCodigo = "XXYYZZ00";
+
+        // Este teste assume que os arquivos necessários existem e são válidos
+        try {
+            recuperaArquivo.decriptaEVerificaArquivos(nomeCodigo, nomeSecreto);
+
+            // Checa se o arquivo com o nome secreto foi criado na pasta
+            File f = new File("CofreDigital/Pacote-T4/Files/" + "/" + nomeSecreto);
+            assertTrue("O arquivo descriptografado deveria existir", f.exists());
+
+            // Verifica o tamanho do arquivo para garantir que não está vazio
+            assertTrue("O arquivo descriptografado não deveria estar vazio", f.length() > 0);
+        } catch (Exception e) {
+            // Caso ocorra qualquer exceção, o teste falha
+            fail("Nenhuma exceção deveria ser lançada, mas foi lançada: " + e.getMessage());
+        }
+    }
 }

@@ -13,6 +13,7 @@ import java.util.Scanner;
 import java.util.Arrays;
 
 
+
 public class RecuperaArquivo {
 
     private String emailUsuario;
@@ -72,29 +73,29 @@ public class RecuperaArquivo {
         //return filtro(new String(textoPlano));
     }
 
-    public String decriptaEVerificaArquivos(String nomeArquivo) throws Exception {
+    public void decriptaEVerificaArquivos(String nomeCodigo, String nomeSecreto) throws Exception {
         // Checa se os arquivos necessários existem
-        if (!arquivoExiste(nomeArquivo + ".env") || !arquivoExiste(nomeArquivo + ".enc") || !arquivoExiste(nomeArquivo + ".asd")) {
-            return null;
+        if (!arquivoExiste(nomeCodigo + ".env") || !arquivoExiste(nomeCodigo + ".enc") || !arquivoExiste(nomeCodigo + ".asd")) {
+            throw new FileNotFoundException("Um ou mais arquivos necessários não foram encontrados.");
         }
 
         // Decripta a semente da chave simétrica
-        byte[] bytesEnvelope = lerBytes(pastaSegura + "/" + nomeArquivo + ".env");
+        byte[] bytesEnvelope = lerBytes(pastaSegura + "/" + nomeCodigo + ".env");
         Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
         cipher.init(Cipher.DECRYPT_MODE, privateKey);
-        byte[] semente = cipher.doFinal(bytesEnvelope); //Erro aqui
+        byte[] semente = cipher.doFinal(bytesEnvelope);
 
         // Cria a chave AES a partir da semente
         Key keyAES = ManipuladorDeChaves.generateKaes(new String(semente, "UTF-8"));
 
         // Decripta o arquivo de índice
-        byte[] bytesCriptograma = lerBytes(pastaSegura + "/" + nomeArquivo + ".enc");
+        byte[] bytesCriptograma = lerBytes(pastaSegura + "/" + nomeCodigo + ".enc");
         cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
         cipher.init(Cipher.DECRYPT_MODE, keyAES);
         byte[] textoPlano = cipher.doFinal(bytesCriptograma);
 
         //Verifica a assinatura
-        byte[] signatureBytes = lerBytes(pastaSegura + "/" + nomeArquivo + ".asd");
+        byte[] signatureBytes = lerBytes(pastaSegura + "/" + nomeCodigo + ".asd");
         Signature signature = Signature.getInstance("SHA1withRSA");
         signature.initVerify(publicKey);
         signature.update(textoPlano);
@@ -102,11 +103,13 @@ public class RecuperaArquivo {
             throw new SecurityException("A assinatura digital não é válida.");
         }
 
-        if ("index".equals(nomeArquivo)) {
-            return filtro(new String(textoPlano));
-        } else {
-            return new String(textoPlano);
+        // Escreve os dados descriptografados em um novo arquivo com o nome secreto
+        try (FileOutputStream fos = new FileOutputStream(pastaSegura + "/" + nomeSecreto)) {
+            fos.write(textoPlano);
+        } catch (IOException e) {
+            throw new IOException("Erro ao escrever o arquivo descriptografado.", e);
         }
+        
     }
 
     private String filtro(String textoPlano) {
