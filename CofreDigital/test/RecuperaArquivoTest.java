@@ -18,8 +18,8 @@ public class RecuperaArquivoTest {
     @Before
     public void setUp() throws NoSuchAlgorithmException {
         String diretorioAtual = System.getProperty("user.dir");
-        caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/test/admin-pkcs8-aes.pem";
-        caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/test/admin-x509.crt";
+        caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/Pacote-T4/Keys/admin-pkcs8-aes.pem";
+        caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/Pacote-T4/Keys/admin-x509.crt";
 
         privateKey = ManipuladorDeChaves.generateObjetoChavePrivadaFromArquivo(caminhoChavePrivada, "admin");
         X509Certificate certificado;

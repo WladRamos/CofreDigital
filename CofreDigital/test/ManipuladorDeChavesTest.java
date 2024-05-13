@@ -13,8 +13,8 @@ public class ManipuladorDeChavesTest {
     @Before
     public void setUp() {
         String diretorioAtual = System.getProperty("user.dir");
-        caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/test/user02-pkcs8-aes.pem";
-        caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/test/user02-x509.crt";
+        caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/Pacote-T4/Keys/user02-pkcs8-aes.pem";
+        caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/Pacote-T4/Keys/user02-x509.crt";
     }
 
     @Test
@@ -25,6 +25,12 @@ public class ManipuladorDeChavesTest {
             assertNotNull(chaveSecreta);
             assertEquals(32, chaveSecreta.length()); 
             assertTrue(chaveSecreta.matches("[A-Z2-7]+"));
+
+            byte[] encKey = ManipuladorDeChaves.encryptChaveSecreta(chaveSecreta, "1304587609");
+            System.out.println("chave secreta encriptada: " + encKey + " (tam: "+ encKey.length+ ")");
+            String k = new String(encKey, "UTF-8");
+            System.out.println("chave secreta encriptada string: " + k + " (tam: "+ k.length()+ ")");
+
         } catch (Exception e) {
             fail("Exception thrown while generating secret key");
         }
