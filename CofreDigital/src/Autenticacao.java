@@ -50,14 +50,13 @@ public class Autenticacao {
 
     public boolean verificaTOTP(String inputTOTP) throws Exception {
         Database database = Database.getInstance();
-        String chaveSecretaCodificadaBase32Cifrada = database.getChaveSecretaDoUsuario(uid);
-        // todo: adaptar essa função a depender da forma como é guardada no banco de dados, talvez precise decodificar
+        byte[] chaveSecretaCodificadaBase32Cifrada = database.getChaveSecretaDoUsuario(uid);
 
         // Gerar Kaes com a senha do usuário verificada na etapa anterior 
-        SecretKey chaveAES = ManipuladorDeChaves.generateKaes(senha);
+        SecretKey chaveAES = GestorDeSeguranca.generateKaes(senha);
 
         // Decriptar a chave secreta com a Kaes gerada
-        byte[] chaveSecretaCodificadaBase32Array = ManipuladorDeChaves.decryptChave(chaveSecretaCodificadaBase32Cifrada.getBytes("UTF-8"), chaveAES);
+        byte[] chaveSecretaCodificadaBase32Array = GestorDeSeguranca.decryptChave(chaveSecretaCodificadaBase32Cifrada, chaveAES);
         String chaveSecretaCodificadaBase32 = new String(chaveSecretaCodificadaBase32Array, "UTF8");
 
         // Verificar se o código inserido pelo usuário está correto

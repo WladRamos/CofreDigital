@@ -522,8 +522,8 @@ public class InterfaceCofreDigital {
                 String diretorioAtual = System.getProperty("user.dir");
                 String caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/test/admin-pkcs8-aes.pem";
                 String caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/test/admin-x509.crt";
-                PrivateKey privateKey = ManipuladorDeChaves.generateObjetoChavePrivadaFromArquivo(caminhoChavePrivada, "admin");
-                X509Certificate certificado = ManipuladorDeChaves.generateObjetoCertificadoDigitalFromArquivo(caminhoCertificadoDigital);
+                PrivateKey privateKey = GestorDeSeguranca.generatePrivateKeyFromFile(caminhoChavePrivada, "admin");
+                X509Certificate certificado = GestorDeSeguranca.generateX509CertificateFromFile(caminhoCertificadoDigital);
                 PublicKey publicKey = certificado.getPublicKey();
                 RecuperaArquivo recuperaArquivo = new RecuperaArquivo("user@example.com", "usuario", caminhoPasta.getText(), publicKey, privateKey);
                 List<List<String>> resultado = recuperaArquivo.decriptaEVerificaIndex();

@@ -21,10 +21,10 @@ public class RecuperaArquivoTest {
         caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/Pacote-T4/Keys/admin-pkcs8-aes.pem";
         caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/Pacote-T4/Keys/admin-x509.crt";
 
-        privateKey = ManipuladorDeChaves.generateObjetoChavePrivadaFromArquivo(caminhoChavePrivada, "admin");
+        privateKey = GestorDeSeguranca.generatePrivateKeyFromFile(caminhoChavePrivada, "admin");
         X509Certificate certificado;
         try{
-            certificado = ManipuladorDeChaves.generateObjetoCertificadoDigitalFromArquivo(caminhoCertificadoDigital);
+            certificado = GestorDeSeguranca.generateX509CertificateFromFile(caminhoCertificadoDigital);
             publicKey = certificado.getPublicKey();
         }catch(Exception e){
             e.printStackTrace();

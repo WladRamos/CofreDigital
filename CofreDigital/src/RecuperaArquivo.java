@@ -39,7 +39,7 @@ public class RecuperaArquivo {
         byte[] semente = cipher.doFinal(bytesEnvelope);
 
         // Cria a chave AES a partir da semente
-        Key keyAES = ManipuladorDeChaves.generateKaes(new String(semente, "UTF-8"));
+        Key keyAES = GestorDeSeguranca.generateKaes(new String(semente, "UTF-8"));
 
         // Decripta o arquivo de índice
         byte[] bytesCriptograma = lerBytes(pastaSegura + "/" + "index.enc");
@@ -81,7 +81,7 @@ public class RecuperaArquivo {
         byte[] semente = cipher.doFinal(bytesEnvelope);
 
         // Cria a chave AES a partir da semente
-        Key keyAES = ManipuladorDeChaves.generateKaes(new String(semente, "UTF-8"));
+        Key keyAES = GestorDeSeguranca.generateKaes(new String(semente, "UTF-8"));
 
         // Decripta o arquivo de índice
         byte[] bytesCriptograma = lerBytes(pastaSegura + "/" + nomeCodigo + ".enc");

@@ -40,7 +40,7 @@ public class Cadastro {
 
     public boolean verificaCertificadoDigital() throws Exception {
         try{
-            X509Certificate x509certificate = ManipuladorDeChaves.generateObjetoCertificadoDigitalFromArquivo(caminhoCertificadoDigital);
+            X509Certificate x509certificate = GestorDeSeguranca.generateX509CertificateFromFile(caminhoCertificadoDigital);
             if (x509certificate != null) {
                 PublicKey pubkey = certificado.getPublicKey();
                 if (pubkey != null) {
@@ -66,7 +66,7 @@ public class Cadastro {
 
     public boolean verificaFraseSecretaDaChavePrivada(String fraseSecreta) {
         try{
-            PrivateKey pkey = ManipuladorDeChaves.generateObjetoChavePrivadaFromArquivo(caminhoChavePrivada, fraseSecreta);
+            PrivateKey pkey = GestorDeSeguranca.generatePrivateKeyFromFile(caminhoChavePrivada, fraseSecreta);
             if (pkey != null) {
                 this.chavePrivada = pkey;
                 return true;
@@ -80,7 +80,7 @@ public class Cadastro {
 
     public boolean verificaChavePrivadaComChavePublica() {
         try {
-            boolean chavePrivadaVerificada = ManipuladorDeChaves.verificaChavePrivadaComChavePublica(chavePrivada, chavePublica);
+            boolean chavePrivadaVerificada = GestorDeSeguranca.verificaChavePrivadaComChavePublica(chavePrivada, chavePublica);
             return chavePrivadaVerificada;
 
         } catch (Exception e) {
@@ -96,7 +96,7 @@ public class Cadastro {
         * Método verificaSenhasIguais(senha, confirmaSenha) considera o recebimento de senhas com formato já validado.
         */
         if(senha.equals(confirmarSenha)) {
-            this.hashUsuario = ManipuladorDeChaves.generateHashDaSenha(senha);
+            this.hashUsuario = GestorDeSeguranca.generateHashDaSenha(senha);
             return true;
         }
         return false;
@@ -113,7 +113,7 @@ public class Cadastro {
 
             // Extrair a série do certificado
             byte[] serieBytes = certificado.getSerialNumber().toByteArray();
-            String serie = ManipuladorDeChaves.byteArrayToHexString(serieBytes);
+            String serie = GestorDeSeguranca.byteArrayToHexString(serieBytes);
             certificadoMap.put("serie", serie);
 
             // Extrair a data de validade do certificado
@@ -150,7 +150,7 @@ public class Cadastro {
     // Método de cadastro das informações confirmadas no banco de dados do Cofre Digital
 
     public String cadastraUsuario(int grupo) {
-        this.chavePrivadaBin = ManipuladorDeChaves.generateChavePrivadaBin(caminhoChavePrivada);
+        this.chavePrivadaBin = GestorDeSeguranca.generateChavePrivadaBIN(caminhoChavePrivada);
         // Checar recebimento correto de todas as informações de cadastro
         if (grupo != 1 && grupo != 2) {
             System.err.println("Grupo inválido. Escolha 1 para Administrador ou 2 para Usuário.");
