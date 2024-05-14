@@ -165,7 +165,7 @@ public class Cadastro {
 
         // Inserindo o novo usuário no banco de dados do Cofre Digital
         Database database = Database.getInstance();
-        boolean usuarioInserido = database.insertUser(
+        boolean usuarioInserido = database.insertIntoUsuarios(
             emailUsuario, 
             nomeUsuario, 
             hashUsuario, 

@@ -1,3 +1,4 @@
+import java.sql.Timestamp;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -163,7 +164,7 @@ public class Database {
                          "mensagem_fk INT," +
                          "timestamp DATETIME," +
                          "usuario_fk INT," +
-                         "arquivo_selecionado_decriptacao VARCHAR(255)," +      // Não tenho certeza desse tipo 
+                         "arquivo_selecionado_decriptacao VARCHAR(255)," +
                          "FOREIGN KEY (mensagem_fk) REFERENCES Mensagens(MID)," +
                          "FOREIGN KEY (usuario_fk) REFERENCES Usuarios(UID)" +
                          ")";
@@ -176,7 +177,7 @@ public class Database {
 
     // Populando as Tabelas Mensagens e Grupos com as entradas pré-definidas
 
-    private void populateTableMensagens(){
+    private void populateTableMensagens() {
         try {
             int count = countTableEntries("Mensagens");
             if (count == 0) {
@@ -250,7 +251,7 @@ public class Database {
         }
     }
 
-    private void populateTableGrupos(){
+    private void populateTableGrupos() {
         try {
             int count = countTableEntries("Grupos");
             if (count == 0) {
@@ -269,7 +270,9 @@ public class Database {
         }
     }
 
-    private int countTableEntries(String table){
+    // Métodos auxiliares para consultas no banco de dados
+
+    private int countTableEntries(String table) {
         try {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM " + table);
@@ -277,40 +280,222 @@ public class Database {
             int count = resultSet.getInt(1);
             resultSet.close();
             return count;
+
         } catch (SQLException e){
             e.printStackTrace();
             return -1;
         }
     }
- 
-    // Métodos de Busca e Manipulação no Banco de Dados CofreDigital
 
-    public int getUIDdoUsuarioIfExists(String email) {
-        int uid = -1;
-        String sql = "SELECT UID " +
-                     "FROM Usuarios u " +
-                     "WHERE u.email = ?";
-
+    private int countMessagesForUser(int uid, int mid) {
+        String sql = "SELECT COUNT(*) AS count FROM Registros" +
+                     "WHERE usuario_fk = ? AND mensagem_fk = ?";
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setString(1, email);
+            statement.setInt(1, uid);
+            statement.setInt(2, mid);
             ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                uid = resultSet.getInt("UID");
-            }
+            resultSet.next();
+            int count = resultSet.getInt("count");
+            return count;
+
         } catch (SQLException e) {
             e.printStackTrace();
             return -1;
         }
-        return uid;     // Se usuário não encontrado, retorna -1
+    }
+
+    // Métodos públicos para consultas no banco da dados
+
+    public int getUsuarioIfExists(String email) {
+        String sql = "SELECT UID FROM Usuarios u " +
+                     "WHERE u.email = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setString(1, email);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            int uid = resultSet.getInt("UID");
+            return uid;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    public HashMap<String, String> getInfoDoUsuario(int uid) {
+        String sql = "SELECT UID, nome, grupo_nome FROM Usuarios u " +
+                     "JOIN Grupos g ON u.grupo_fk = g.GID " +
+                     "WHERE u.UID = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            // Inserindo as informações do usuário no HashMap    
+            HashMap<String, String> info = new HashMap<>();
+            info.put("nome", resultSet.getString("nome"));
+            info.put("grupo", resultSet.getString("grupo_nome"));
+            info.put("numero_de_acessos", Integer.toString(countMessagesForUser(uid, 2003)));   // duvida: conferir se a mensagem 2003 é o que configura um acesso
+            return info;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public String getHashDoUsuario(int uid) {
+        String sql = "SELECT hash FROM Usuarios u WHERE u.UID = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            String hash = resultSet.getString("hash");
+            return hash;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public byte[] getChaveSecretaCriptografadaDoUsuario(int uid) {
+        String sql = "SELECT chave_secreta FROM Usuarios u WHERE u.UID = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            byte[] chaveSecreta = resultSet.getBytes("chave_secreta");
+            return chaveSecreta;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public byte[] getChavePrivadaCriptografadaDoUsuario(int uid) {
+        String sql = "SELECT chave_privada_criptografada FROM Chaveiro c " +
+                     "JOIN Usuarios u ON u.chaveiro_fk = c.KID WHERE u.UID = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            byte[] chave_privada_criptografada = resultSet.getBytes("chave_privada_criptografada");
+            return chave_privada_criptografada;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public String getCertificadoDigitalDoUsuario(int uid) {
+        String sql = "SELECT certificado_digital FROM Chaveiro c " +
+                     "JOIN Usuarios u ON u.chaveiro_fk = c.KID WHERE u.UID = ?";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            String certificado_digital = resultSet.getString("certificado_digital");
+            return certificado_digital;
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    public int countConsultasDoUsuario(int uid) {
+        return countMessagesForUser(uid, 7014);     
+        // duvida: conferir se a mensagem 7014 é o que configura uma consulta a arquivo
+    }
+
+    public int countUsuariosNoSistema() {
+        return countTableEntries("Usuarios");
+    }
+
+    // Métodos auxiliares para manipulações no banco da dados
+    
+    private int getChaveiroDoUsuarioIfExists(int uid) {
+        try {
+            String sql = "SELECT chaveiro_fk FROM Usuarios WHERE UID = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            resultSet.next();
+            int chaveiro_fk = resultSet.getInt("chaveiro_fk");
+            return chaveiro_fk;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }        
+    }
+    
+    private int insertIntoChaveiro(byte[] chave_privada_criptografada_bin, String certificado_digital_pem) {
+        try {
+            String sql = "INSERT INTO Chaveiro (chave_privada_criptografada, certificado_digital) VALUES (?, ?)";
+            PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setBytes(1, chave_privada_criptografada_bin);
+            statement.setString(2, certificado_digital_pem);
+            int rowsInserted = statement.executeUpdate();
+ 
+            if (rowsInserted > 0) {
+                ResultSet resultSet = statement.getGeneratedKeys();
+                resultSet.next();
+                int kid = resultSet.getInt(1);
+                return kid;                
+            } else {
+                return -1;
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+   // Métodos públicos para manipulações no banco da dados
+
+    public boolean insertIntoUsuarios(
+        String email, String nome, String hash, byte[] chave_secreta_criptografada, 
+        byte[] chave_privada_criptografada_bin, String certificado_digital_pem, int grupo
+    ) {
+        try{
+            int kid = insertIntoChaveiro(chave_privada_criptografada_bin, certificado_digital_pem);
+            if (kid != -1) {
+                String sql = "INSERT INTO Usuarios (email, nome, hash, chave_secreta, chaveiro_fk, grupo_fk) VALUES (?, ?, ?, ?, ?, ?)";
+                PreparedStatement statement = connection.prepareStatement(sql);
+                statement.setString(1, email);
+                statement.setString(2, nome);
+                statement.setString(3, hash);
+                statement.setBytes(4, chave_secreta_criptografada);
+                statement.setInt(5, kid);
+                statement.setInt(6, grupo);
+
+                int rowsInserted = statement.executeUpdate();
+                return rowsInserted > 0;
+            } else {
+                return false;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean deleteUsuarioAndChaveiroIfExists(String email) {
-        boolean deleted = false;
-        int uid = getUIDdoUsuarioIfExists(email);
-        if (uid != -1) {
-            try {
-                int kid = getChaveiroFK(uid);
+        try {
+            boolean status = false;
+            int uid = getUsuarioIfExists(email);
+            if (uid != -1) {
+                int kid = getChaveiroDoUsuarioIfExists(uid);
                 if (kid != -1) {
                     // Excluindo o usuário da tabela Usuarios
                     String deleteUsuarioSQL = "DELETE FROM Usuarios WHERE UID = ?";
@@ -324,239 +509,31 @@ public class Database {
                     deleteChaveiroStatement.setInt(1, kid);
                     deleteChaveiroStatement.executeUpdate(); 
 
-                    deleted = true;
-                }     
-            } catch (SQLException e) {
-                e.printStackTrace();
-                return false;
-            }
-        } 
-        return deleted;
-    }
-    
-    private int getChaveiroFK(int uid) {
-        int chaveiro_fk = -1;
-        try {
-            String sql = "SELECT chaveiro_fk FROM Usuarios WHERE UID = ?";
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, uid);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                chaveiro_fk = resultSet.getInt("chaveiro_fk");
-            }
-            return chaveiro_fk;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -1;
-        }        
-    }
-    
-    public HashMap<String, String> getinformacoesDoUsuario(int uid){
-        HashMap<String, String> info = null;
-        String sql = "SELECT UID, nome, grupo_nome " +
-                     "FROM Usuarios u " +
-                     "JOIN Grupos g ON u.grupo_fk = g.GID " +
-                     "WHERE u.UID = ?";
-
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, uid);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                String nome = resultSet.getString("nome");
-                String grupo = resultSet.getString("grupo_nome");
-                String numero_de_acessos = countAcessosDoUsuario(uid);
-                // Inserindo as informações do usuário no HashMap
-                info = new HashMap<>();
-                info.put("nome", nome);
-                info.put("grupo", grupo);
-                info.put("numero_de_acessos", numero_de_acessos);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return info;     // Se usuário não encontrado, retorna null
-    }
-
-    private String countAcessosDoUsuario(int uid){
-        String n_acessos = null;
-        String sql = "SELECT COUNT(*) AS n_acessos " +
-                     "FROM Registros " +
-                     "WHERE usuario_fk = ? AND mensagem_fk = 2003";     // duvida: conferir se a mensagem 2003 é o que configura um acesso (acho que sim)
-        
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, uid);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                n_acessos = resultSet.getString("n_acessos");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return n_acessos;     // Se usuário não encontrado, retorna null
-    }
-
-    public String getHashDoUsuario(int uid){
-        String hash = null;
-        String sql = "SELECT hash " +
-                     "FROM Usuarios u " +
-                     "WHERE u.UID = ?";
-        
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, uid);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                hash = resultSet.getString("hash");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return hash;     // Se usuário não encontrado, retorna null
-    }
-
-    public byte[] getChaveSecretaDoUsuario(int uid) {
-        byte[] chaveSecreta = null;
-        String sql = "SELECT chave_secreta " +
-                     "FROM Usuarios u " +
-                     "WHERE u.UID = ?";
-        
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, uid);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                chaveSecreta = resultSet.getBytes("chave_secreta");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return chaveSecreta;     // Se usuário não encontrado, retorna null
-    }
-
-    public int countUsuariosNoSistema() {
-        int countUsuarios = -1;
-        String sql = "SELECT COUNT(*) AS total_usuarios FROM Usuarios";
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                countUsuarios = resultSet.getInt("total_usuarios");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
-        }
-        return countUsuarios;   // Se houver algum erro na consulta, retorna -1
-    }
-
-    public int countAberturasDeArquivosUsuario(int uid) {
-        int countAberturas = -1;
-        String sql = "SELECT COUNT(*) AS n_aberturas_arquivos " +
-                     "FROM Registros " +
-                     "WHERE usuario_fk = ? AND mensagem_fk = 7014";     // duvida: conferir se a mensagem 7014 é o que configura um acesso ao arquivo (acho que sim)
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, uid);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                countAberturas = resultSet.getInt("n_aberturas_arquivos");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
-        }
-        return countAberturas;   // Se houver algum erro na consulta, retorna -1
-    }
-
-    public void insertPrivateKey(byte[] pkey) {
-        String sql = "INSERT INTO Chaveiro (chave_privada_criptografada)  VALUES(?)";
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setBytes(1, pkey);
-            statement.executeQuery();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public byte[] getPrivateKey(int uid) {
-        byte[] pkey = null;
-        String sql = "SELECT chave_privada_criptografada " +
-                     "FROM Chaveiro c " +
-                     "JOIN Usuarios u ON u.chaveiro_fk = c.KID " +
-                     "WHERE u.UID = ?";
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, uid);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                pkey = resultSet.getBytes("chave_privada_criptografada");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
-        }
-        return pkey;     // Se chaveiro do usuário não encontrado, retorna null
-    }
-
-    private int insertChaveiro(byte[] chave_privada_criptografada_bin, String certificado_digital_pem) {
-        int kid = -1;
-        String sql = "INSERT INTO Chaveiro (chave_privada_criptografada, certificado_digital) VALUES (?, ?)";
- 
-        try {
-            PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-            statement.setBytes(1, chave_privada_criptografada_bin);
-            statement.setString(2, certificado_digital_pem);
-            int lines = statement.executeUpdate();
- 
-            if (lines > 0) {
-                ResultSet resultSet = statement.getGeneratedKeys();
-                if (resultSet.next()) {
-                    kid = resultSet.getInt(1);
-                }
-            }
-            return kid;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return -1;
-        }
-    }
-
-    public boolean insertUser(String email, String nome, String hash, byte[] chave_secreta_criptografada, 
-        byte[] chave_privada_criptografada_bin, String certificado_digital_pem, int grupo) {
-
-        boolean status = false;
-        int kid = insertChaveiro(chave_privada_criptografada_bin, certificado_digital_pem);
-
-        try{
-            if (kid != -1) {
-                String sql = "INSERT INTO Usuarios (email, nome, hash, chave_secreta, chaveiro_fk, grupo_fk) VALUES (?, ?, ?, ?, ?, ?)";
-                
-                PreparedStatement statement = connection.prepareStatement(sql);
-                statement.setString(1, email);
-                statement.setString(2, nome);
-                statement.setString(3, hash);
-                statement.setBytes(4, chave_secreta_criptografada);
-                statement.setInt(5, kid);
-                statement.setInt(6, grupo);
-
-                int lines = statement.executeUpdate();
-                status = lines > 0;
-            }
+                    status = true;
+                } 
+            } 
             return status;
-
         } catch (SQLException e) {
             e.printStackTrace();
             return false;
         }
-    }
+    } 
+    
+    public boolean insertIntoRegistros(int mid, Timestamp timestamp, int uid, String arquivo) {
+        try {
+            String sql = "INSERT INTO Registros (mensagem_fk, timestamp, usuario_fk, arquivo_selecionado_decriptacao) VALUES (?, ?, ?, ?)";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, mid);
+            statement.setTimestamp(2, timestamp);
+            statement.setInt(3, uid);
+            statement.setString(4, arquivo);
+            int rowsInserted = statement.executeUpdate();
+            return rowsInserted > 0;
 
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false; 
+        }
+    }
+    
 }

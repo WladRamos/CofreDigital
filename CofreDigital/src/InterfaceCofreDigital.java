@@ -118,11 +118,11 @@ public class InterfaceCofreDigital {
         botaoLogin.addActionListener(e -> {
             Database database = Database.getInstance();
             String email = campoTextoEmail.getText();
-            int uid = database.getUIDdoUsuarioIfExists(email);
+            int uid = database.getUsuarioIfExists(email);
             HashMap<String, String> u = null;
             if (uid != -1){
                 idUsuario = uid;
-                u = database.getinformacoesDoUsuario(uid);
+                u = database.getInfoDoUsuario(uid);
                 if (u != null) {
                     String nome = u.get("nome");
                     String grupo = u.get("grupo");

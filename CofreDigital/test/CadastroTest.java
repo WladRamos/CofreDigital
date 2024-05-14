@@ -166,7 +166,7 @@ public class CadastroTest {
         assertNotNull(chaveSecreta);
         System.out.println("chave secreta TOTP gerada: " + chaveSecreta);
         
-        int uid = database.getUIDdoUsuarioIfExists("user02@inf1416.puc-rio.br");
+        int uid = database.getUsuarioIfExists("user02@inf1416.puc-rio.br");
         assertFalse(uid==-1);
     }  
 
