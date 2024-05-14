@@ -2,43 +2,37 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
 import java.awt.*;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
+import java.awt.event.*;
 import java.io.File;
-import java.io.ObjectInputFilter.Status;
 import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.security.PrivateKey;
-import java.security.PublicKey;
+import java.util.*;
+import java.security.*;
 import java.util.List;
 
 public class InterfaceCofreDigital {
+    private Database database;
     private JFrame janelaPrincipal;
-    private JTextField campoTextoEmail;
-    private JTextField campoTextoTOTP;
+    private JTextField campoTextoEmail, campoTextoTOTP;
     private JPasswordField campoSenha;
     private JPanel painelTeclas;
     private JButton botaoOK;
     private ArrayList<String[]> possibilidadesSenha = new ArrayList<>();
-    private String grupoUsuario;
-    private String nomeUsuario;
-    private String qtdAcessosUsuario;
+    private String grupoUsuario, nomeUsuario, qtdAcessosUsuario;
     private int idUsuario;
     private String fraseSecretaAdmin;
 
 
     public InterfaceCofreDigital(int status) {
-
+        this.database = Database.getInstance();
         janelaPrincipal = new JFrame("Cofre Digital");
         janelaPrincipal.setSize(500, 200);
         janelaPrincipal.setLayout(new BorderLayout());
         janelaPrincipal.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
         if (status == 0){
-            mostrarTelaConsulta();
-            //mostrarTelaCadastro(0);
+            mostrarTelaCadastro(0);
+            // mostrarTelaConsulta();   // mock
         }else{
             mostrarTelaFraseSecretaAdmin();
         }
@@ -49,8 +43,7 @@ public class InterfaceCofreDigital {
         janelaPrincipal.setLayout(new BorderLayout());
     
         // Criação de um painel intermediário para o cabeçalho e campo de frase secreta
-        JPanel painelSuperior = new JPanel(new BorderLayout());
-    
+        JPanel painelSuperior = new JPanel(new BorderLayout());    
         JLabel rotuloCabecalho = new JLabel("Cofre Digital - Autenticação", JLabel.CENTER);
         painelSuperior.add(rotuloCabecalho, BorderLayout.NORTH);
     
@@ -79,7 +72,6 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaNomeLogin() {
-
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
 
@@ -116,7 +108,6 @@ public class InterfaceCofreDigital {
         janelaPrincipal.setVisible(true);
 
         botaoLogin.addActionListener(e -> {
-            Database database = Database.getInstance();
             String email = campoTextoEmail.getText();
             int uid = database.getUsuarioIfExists(email);
             HashMap<String, String> u = null;
@@ -124,24 +115,15 @@ public class InterfaceCofreDigital {
                 idUsuario = uid;
                 u = database.getInfoDoUsuario(uid);
                 if (u != null) {
-                    String nome = u.get("nome");
-                    String grupo = u.get("grupo");
-                    String acessos = u.get("numero_de_acessos");
-
-                    nomeUsuario = nome;
-                    grupoUsuario = grupo;
-                    qtdAcessosUsuario = acessos;
+                    nomeUsuario = u.get("nome");
+                    grupoUsuario = u.get("grupo");
+                    qtdAcessosUsuario = u.get("numero_de_acessos");
                     mostrarTelaSenha();
-                }else{
-                    JOptionPane.showMessageDialog(janelaPrincipal, "E-mail não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
                 }
             }
-            else {
-                JOptionPane.showMessageDialog(janelaPrincipal, "E-mail não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
-            }
+            JOptionPane.showMessageDialog(janelaPrincipal, "Usuário não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
         });
         botaoLimpar.addActionListener(e -> campoTextoEmail.setText(""));
-
         janelaPrincipal.pack();
     }
 
@@ -175,7 +157,6 @@ public class InterfaceCofreDigital {
         });
 
         botaoOK.addActionListener(e -> {
-            
             Autenticacao aut = new Autenticacao(idUsuario);
             Boolean senhaValidada = aut.verificaSenha(possibilidadesSenha);
             if (senhaValidada) {
@@ -183,7 +164,6 @@ public class InterfaceCofreDigital {
             } else {
                 JOptionPane.showMessageDialog(janelaPrincipal, "Senha Incorreta.", "Erro", JOptionPane.ERROR_MESSAGE);
             }
-
         });
     
         janelaPrincipal.add(painelTeclas, BorderLayout.CENTER);
@@ -247,7 +227,6 @@ public class InterfaceCofreDigital {
             }
         });
 
-
         JButton botaoLimpar = new JButton("LIMPAR");
         painelBotoes.add(botaoOkTOTP);
         painelBotoes.add(botaoLimpar);
@@ -258,15 +237,8 @@ public class InterfaceCofreDigital {
         janelaPrincipal.setVisible(true);
 
         botaoOkTOTP.addActionListener(e -> {
-            Autenticacao aut = new Autenticacao(idUsuario);
-            Boolean TOTPValidado = false;
-            try{
-                TOTPValidado = aut.verificaTOTP(campoTextoTOTP.getText());
-            }
-            catch (Exception x){
-                x.printStackTrace();
-            }
-         
+            Autenticacao autenticacao = new Autenticacao(idUsuario);
+            Boolean TOTPValidado = autenticacao.verificaTOTP(campoTextoTOTP.getText());
             if (TOTPValidado) {
                 mostrarTelaMenu();
             } else {
@@ -310,7 +282,6 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaCadastro(int status) {
-
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
 
@@ -349,6 +320,7 @@ public class InterfaceCofreDigital {
     
         painelCorpo2.add(new JLabel("Grupo:"));
         JComboBox<String> comboBoxGrupo;
+
         if (status == 0) {
             comboBoxGrupo = new JComboBox<>(new String[]{"Administrador"});
         } else {
@@ -360,7 +332,7 @@ public class InterfaceCofreDigital {
         JPasswordField campoSenha = new JPasswordField(10);
         painelCorpo2.add(campoSenha);
     
-        painelCorpo2.add(new JLabel("Confirmação senha pessoal:"));
+        painelCorpo2.add(new JLabel("Confirmação da senha pessoal:"));
         JPasswordField campoConfirmacaoSenha = new JPasswordField(10);
         painelCorpo2.add(campoConfirmacaoSenha);
 
@@ -369,7 +341,7 @@ public class InterfaceCofreDigital {
     
         JPanel painelBotoes = new JPanel(new FlowLayout());
         JButton botaoCadastrar = new JButton("Cadastrar");
-        TratamentosBotaoCadastrar(botaoCadastrar, campoSenha);
+        tratamentosBotaoCadastrar(botaoCadastrar, campoSenha);
         if(status != 0){
             JButton botaoVoltar = new JButton("Voltar");
             painelBotoes.add(botaoVoltar);
@@ -379,7 +351,6 @@ public class InterfaceCofreDigital {
         painelBotoes.add(botaoCadastrar);
     
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
-    
         janelaPrincipal.pack();
         janelaPrincipal.setVisible(true);
 
@@ -418,36 +389,101 @@ public class InterfaceCofreDigital {
 
     private boolean validarSenhaCadastro(char[] senha) {
         String senhaStr = new String(senha);
-        
         if (senhaStr.length() < 8 || senhaStr.length() > 10) {
             return false;
         }
-        
         for (int i = 0; i < senhaStr.length(); i++) {
             if (!Character.isDigit(senhaStr.charAt(i))) {
                 return false;
-            }
-            
+            } 
             if (i > 0 && senhaStr.charAt(i) == senhaStr.charAt(i - 1)) {
                 return false;
             }
         }
-        
         return true;
     }
 
-    private void TratamentosBotaoCadastrar(JButton botaoCadastrar, JPasswordField campoSenha) {
+    private void tratamentosBotaoCadastrar(JButton botaoCadastrar, JPasswordField campoSenha) {
         botaoCadastrar.addActionListener(e -> {
             char[] senha = campoSenha.getPassword();
-            
             if (!validarSenhaCadastro(senha)) {
                 JOptionPane.showMessageDialog(janelaPrincipal, "A senha deve ter de 8 a 10 dígitos.\nA senha não pode conter sequências de números repetidos.\nA senha deve ser formada apenas por digitos de 0 a 9.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-    
             JOptionPane.showMessageDialog(janelaPrincipal, "Usuário cadastrado com sucesso!", "Cadastro", JOptionPane.INFORMATION_MESSAGE);
             mostrarTelaMenu();
         });
+    }
+
+    private void mostrarPopUpConfirmacao(Cadastro cadastro, HashMap<String,String> info) {
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 300);
+
+        // Criar o JPanel que conterá todos os componentes
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        panel.add(new JLabel("Versão: " + info.get("versao")));
+        panel.add(new JLabel("Série: " + info.get("serie")));
+        panel.add(new JLabel("Validade: " + info.get("validade")));
+        panel.add(new JLabel("Tipo de Assinatura: " + info.get("tipo_assinatura")));
+        panel.add(new JLabel("Emissor: " + info.get("emissor")));
+        panel.add(new JLabel("Sujeito: " + info.get("sujeito")));
+        panel.add(new JLabel("Email: " + info.get("email")));
+
+        // Criar os botões
+        JButton confirmButton = new JButton("Confirmar");
+        confirmButton.addActionListener(e -> {
+            String codigoTOTP = cadastro.cadastraUsuario();
+            mostrarPopUpCodigoTOTP(codigoTOTP);
+        });
+
+        JButton cancelButton = new JButton("Cancelar");
+        cancelButton.addActionListener(e -> {
+            frame.dispose();
+        });
+
+        // Adicionar botões ao painel
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(confirmButton);
+        buttonPanel.add(cancelButton);
+        panel.add(buttonPanel);
+
+        // Adicionar o painel ao frame
+        frame.add(panel);
+        frame.pack();
+        frame.setVisible(true);
+    }
+
+    private void mostrarPopUpCodigoTOTP(String codigoTOTP) {
+        JFrame frame = new JFrame();
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 300);
+
+        // Criar o JPanel que conterá todos os componentes
+        JPanel panel = new JPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+
+        panel.add(new JLabel("Insira o código a seguir como chave de configuração no seu google Authenticator: "));
+        panel.add(new JLabel(""));
+        panel.add(new JLabel(codigoTOTP));
+
+        // Criar os botões
+        JButton confirmButton = new JButton("Confirmar");
+        confirmButton.addActionListener(e -> {
+            mostrarTelaNomeLogin();
+        });
+
+        // Adicionar botões ao painel
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(confirmButton);
+        panel.add(buttonPanel);
+
+        // Adicionar o painel ao frame
+        frame.add(panel);
+        frame.pack();
+        frame.setVisible(true);
     }
 
     private void mostrarTelaConsulta() {
@@ -517,75 +553,4 @@ public class InterfaceCofreDigital {
         });
     }
 
-    private void mostrarPopUpConfirmacao(Cadastro cadastro, HashMap<String,String> info) {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 300);
-
-        // Criar o JPanel que conterá todos os componentes
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        panel.add(new JLabel("Versão:" + info.get("versao")));
-        panel.add(new JLabel("Série:" + info.get("serie")));
-        panel.add(new JLabel("Validade:" + info.get("validade")));
-        panel.add(new JLabel("Tipo de Assinatura:" + info.get("tipo_assinatura")));
-        panel.add(new JLabel("Emissor:" + info.get("emissor")));
-        panel.add(new JLabel("Sujeito:" + info.get("sujeito")));
-        panel.add(new JLabel("Email:" + info.get("email")));
-
-        // Criar os botões
-        JButton confirmButton = new JButton("Confirmar");
-        confirmButton.addActionListener(e -> {
-            String codigoTOTP = cadastro.cadastraUsuario();
-            mostrarPopUpCodigoTOTP(codigoTOTP);
-        });
-
-        JButton cancelButton = new JButton("Cancelar");
-        cancelButton.addActionListener(e -> {
-            frame.dispose();
-        });
-
-        // Adicionar botões ao painel
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(confirmButton);
-        buttonPanel.add(cancelButton);
-        panel.add(buttonPanel);
-
-        // Adicionar o painel ao frame
-        frame.add(panel);
-        frame.pack();
-        frame.setVisible(true);
-    }
-
-    private void mostrarPopUpCodigoTOTP(String codigoTOTP) {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 300);
-
-        // Criar o JPanel que conterá todos os componentes
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        panel.add(new JLabel("Insira o código a seguir como chave de configuração no seu google Authenticator:"));
-        panel.add(new JLabel(""));
-
-        panel.add(new JLabel(codigoTOTP));
-
-        // Criar os botões
-        JButton confirmButton = new JButton("Confirmar");
-        confirmButton.addActionListener(e -> {
-            mostrarTelaNomeLogin();
-        });
-
-        // Adicionar botões ao painel
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(confirmButton);
-        panel.add(buttonPanel);
-
-        // Adicionar o painel ao frame
-        frame.add(panel);
-        frame.pack(); // Ajusta o tamanho do frame ao conteúdo
-        frame.setVisible(true); // Mostra o frame
-    }
 }
