@@ -4,7 +4,6 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.File;
-import java.security.PrivateKey;
 import java.security.cert.X509Certificate;
 import java.util.*;
 import java.security.*;
@@ -498,7 +497,6 @@ public class InterfaceCofreDigital {
     
         Box verticalBox = Box.createVerticalBox();
 
-        // Adicionando componentes ao painel
         JPanel painelCorpo2 = new JPanel(new GridLayout(6, 2, 5, 5));
         painelCorpo2.add(new JLabel("Caminho da pasta:"));
         JTextField caminhoPasta = new JTextField(255);
@@ -511,25 +509,44 @@ public class InterfaceCofreDigital {
         JButton btnListar = new JButton("Listar");
         painelCorpo2.add(new JLabel(""));
         painelCorpo2.add(btnListar);
+
         JButton btnVoltar = new JButton("Voltar");
         painelCorpo2.add(new JLabel(""));
         painelCorpo2.add(btnVoltar);
-        verticalBox.add(painelCorpo2);
 
+        verticalBox.add(painelCorpo2);
         janelaPrincipal.add(verticalBox, BorderLayout.CENTER);
 
         // Configuração da tabela
-        String[] colunas = {"Nome Código", "Nome", "Dono", "Grupo"};
-        DefaultTableModel model = new DefaultTableModel(null, colunas);
+        DefaultTableModel model = new DefaultTableModel(null, new String[]{"Nome Código", "Nome", "Dono", "Grupo"}) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         JTable tabelaArquivos = new JTable(model);
         JScrollPane scrollPane = new JScrollPane(tabelaArquivos);
         scrollPane.setPreferredSize(new Dimension(600, 100));
-        janelaPrincipal.add(scrollPane, BorderLayout.SOUTH);
+
+        // Painel para a tabela e o botão "Selecionar"
+        JPanel painelTabelaEBotoes = new JPanel();
+        painelTabelaEBotoes.setLayout(new BorderLayout());
+        painelTabelaEBotoes.add(scrollPane, BorderLayout.CENTER);
+
+        // Painel para o botão "Selecionar"
+        JPanel painelBotoes = new JPanel();
+        JButton btnSelecionar = new JButton("Selecionar");
+        btnSelecionar.setEnabled(false); // Inicialmente desabilitado
+        painelBotoes.add(btnSelecionar);
+        painelTabelaEBotoes.add(painelBotoes, BorderLayout.SOUTH);
+
+        janelaPrincipal.add(painelTabelaEBotoes, BorderLayout.SOUTH);
 
         janelaPrincipal.pack();
         janelaPrincipal.setVisible(true);
 
         btnVoltar.addActionListener(e -> mostrarTelaMenu());
+
         btnListar.addActionListener(e -> {
             try {
                 // Assume que os métodos de geração de chave e certificado são previamente definidos
@@ -539,7 +556,7 @@ public class InterfaceCofreDigital {
                 PrivateKey privateKey = GestorDeSeguranca.generatePrivateKeyFromFile(caminhoChavePrivada, "admin");
                 X509Certificate certificado = GestorDeSeguranca.generateX509CertificateFromFile(caminhoCertificadoDigital);
                 PublicKey publicKey = certificado.getPublicKey();
-                RecuperaArquivo recuperaArquivo = new RecuperaArquivo("user@example.com", "usuario", caminhoPasta.getText(), publicKey, privateKey);
+                RecuperaArquivo recuperaArquivo = new RecuperaArquivo("user@example.com", "usuario", /*caminhoPasta.getText()*/"CofreDigital/Pacote-T4/Files/", publicKey, privateKey);
                 List<List<String>> resultado = recuperaArquivo.decriptaEVerificaIndex();
 
                 // Preenche a tabela com os dados retornados
@@ -551,6 +568,33 @@ public class InterfaceCofreDigital {
                 ex.printStackTrace();
             }
         });
+
+        // Adiciona um ListSelectionListener para rastrear a linha selecionada
+        tabelaArquivos.getSelectionModel().addListSelectionListener(e -> {
+            if (!e.getValueIsAdjusting()) {
+                int selectedRow = tabelaArquivos.getSelectedRow();
+                btnSelecionar.setEnabled(selectedRow != -1); // Habilita o botão se uma linha estiver selecionada
+            }
+        });
+
+        // Adiciona um ActionListener ao botão "Selecionar"
+        btnSelecionar.addActionListener(e -> {
+            int selectedRow = tabelaArquivos.getSelectedRow();
+            if (selectedRow != -1) {
+                String nomeCodigo = (String) model.getValueAt(selectedRow, 0);
+                String nome = (String) model.getValueAt(selectedRow, 1);
+                String dono = (String) model.getValueAt(selectedRow, 2);
+                String grupo = (String) model.getValueAt(selectedRow, 3);
+
+                // Realiza a ação desejada com o arquivo selecionado
+                System.out.println("Arquivo selecionado: " + nomeCodigo + ", " + nome + ", " + dono + ", " + grupo);
+
+                // Adicione aqui o código para seguir com a rotina do programa usando o arquivo selecionado
+            } else {
+                JOptionPane.showMessageDialog(janelaPrincipal, "Nenhum arquivo selecionado", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
+        });
     }
+
 
 }

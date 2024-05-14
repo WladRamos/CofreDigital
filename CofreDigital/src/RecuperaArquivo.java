@@ -12,15 +12,15 @@ import java.util.Arrays;
 
 public class RecuperaArquivo {
 
-    private String emailUsuario;
-    //private String grupoUsuario;
+    //private String emailUsuario;
+    private String grupoUsuario;
     private String pastaSegura;
     private PublicKey publicKey;
     private PrivateKey privateKey;
 
     public RecuperaArquivo(String emailUsuario, String grupoUsuario, String pastaSegura, PublicKey publicKey, PrivateKey privateKey) {
-        this.emailUsuario = emailUsuario;
-        //this.grupoUsuario = grupoUsuario;
+        //this.emailUsuario = emailUsuario;
+        this.grupoUsuario = grupoUsuario;
         this.pastaSegura = pastaSegura;
         this.publicKey = publicKey;
         this.privateKey = privateKey;
@@ -111,7 +111,7 @@ public class RecuperaArquivo {
         List<List<String>> listaFiltrada = new ArrayList<>();
     
         for (List<String> sublista : listaArquivos) {
-            if (sublista.get(2).equals(emailUsuario)) {
+            if (sublista.get(3).equals(grupoUsuario)) {
                 listaFiltrada.add(new ArrayList<>(sublista));
             }
         }

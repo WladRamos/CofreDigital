@@ -31,7 +31,7 @@ public class RecuperaArquivoTest {
         }
         
         // Configurando a instância da classe RecuperaArquivo
-        recuperaArquivo = new RecuperaArquivo("admin@inf1416.puc-rio.br", "administrador", "CofreDigital/Pacote-T4/Files/", publicKey, privateKey);
+        recuperaArquivo = new RecuperaArquivo("admin@inf1416.puc-rio.br", "usuario", "CofreDigital/Pacote-T4/Files/", publicKey, privateKey);
     }
 
     @Test
