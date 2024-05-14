@@ -10,14 +10,11 @@ public class Cadastro {
     private PrivateKey chavePrivada;
     private PublicKey chavePublica;
 
-    // Campos do cadastro
     private String caminhoCertificadoDigital, caminhoChavePrivada, fraseSecreta, senha, confirmaSenha;
     private int grupo;
     private boolean entradasVerificadas = false;
 
     private String emailUsuario, nomeUsuario;
-
-    // Construtor
 
     public Cadastro(
         String caminhoCertificadoDigitalInput, 
@@ -68,7 +65,7 @@ public class Cadastro {
         return "Entradas verificadas";
     }
 
-    public HashMap<String, String> getDetalhesDoCertificadoDigital() throws Exception {
+    public HashMap<String, String> getDetalhesDoCertificadoDigital() {
         HashMap<String, String> certificadoMap = new HashMap<>();
         try{
             // Extrair a versão do certificado
