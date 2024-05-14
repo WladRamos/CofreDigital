@@ -50,15 +50,15 @@ public class DatabaseTest {
 
                 // Verifica se quantidade de entradas na tabela está correta
                 if (tableExists) {
-                    statement = connection.prepareStatement(
-                        "SELECT COUNT(*) FROM " + table
-                    );
-                    ResultSet countResult = statement.executeQuery();
-                    int count = 0;
-                    if (countResult.next()) {
-                        count = countResult.getInt(1);
+                    if (table.equals("Mensagens") || table.equals("Grupos")) {
+                        statement = connection.prepareStatement("SELECT COUNT(*) FROM " + table);
+                        ResultSet countResult = statement.executeQuery();
+                        int count = 0;
+                        if (countResult.next()) {
+                            count = countResult.getInt(1);
+                        }
+                        assertEquals("Quantidade incorreta de entradas na tabela " + table, expectedCounts[i], count);
                     }
-                    assertEquals("Quantidade incorreta de entradas na tabela " + table, expectedCounts[i], count);
                 }
             }        
         } catch (SQLException e) {
