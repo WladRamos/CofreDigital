@@ -1,77 +1,173 @@
-/*import static org.junit.Assert.*;
+import static org.junit.Assert.*;
 
 import java.io.File;
-import java.security.PrivateKey;
-import java.security.cert.X509Certificate;
+import java.util.HashMap;
 
 import org.junit.Before;
 import org.junit.Test;
 
 public class CadastroTest {
 
-    private Cadastro cadastro;
+    private String caminhoChavePrivada, caminhoCertificadoDigital, caminhoDeOutroCertificadoDigital;
 
     @Before
     public void setUp() {
-        cadastro = new Cadastro();
+        String diretorioAtual = System.getProperty("user.dir");
+        caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/Pacote-T4/Keys/user02-pkcs8-aes.pem";
+        caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/Pacote-T4/Keys/user02-x509.crt";
+        caminhoDeOutroCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/Pacote-T4/Keys/user01-x509.crt";
     }
 
     @Test
-    public void testGenerateObjetoCertificadoDigital() {
-        String diretorioAtual = System.getProperty("user.dir");
-        String caminhoCertificado = diretorioAtual + File.separator + "CofreDigital/test/user02-x509.crt";
-
-        try {
-            X509Certificate certificado = cadastro.generateObjetoCertificadoDigital(caminhoCertificado);
-            assertNotNull(certificado);
-            testExtrairNome(certificado);
-            testExtrairEmail(certificado);
-        } catch (Exception e) {
-            fail("Erro ao gerar o certificado digital: " + e.getMessage());
-        }
-    }
-
-    public void testExtrairNome(X509Certificate certificado) {
-        String nome = cadastro.extrairNomeDoCertificadoDigital(certificado);
-        assertNotNull(nome);
-        assertEquals("Usuario 02", nome);
-    }
-
-    public void testExtrairEmail(X509Certificate certificado) {
-        try {
-            String email = cadastro.extrairEmailDoCertificadoDigital(certificado);
-            assertEquals("user02@inf1416.puc-rio.br", email);
-        } catch (Exception e) {
-            fail("Erro ao extrair o email do certificado: " + e.getMessage());
-        }
+    public void testVerificaEntradasDoCadastro() {
+        Cadastro cadastro = new Cadastro(
+            caminhoCertificadoDigital, 
+            caminhoChavePrivada, 
+            "user02", 
+            2, 
+            "12345678", 
+            "12345678"
+        );
+        String verified = cadastro.verificaEntradasDoCadastro();
+        assertEquals("Entradas verificadas", verified);
     }
 
     @Test
-    public void generateObjetoChavePrivadaFromArquivo() {
-        String diretorioAtual = System.getProperty("user.dir");
-        String caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/test/user02-pkcs8-aes.pem";
-
-        try {
-            PrivateKey certificado = cadastro.generateObjetoChavePrivadaFromArquivo(caminhoChavePrivada, "user02");
-            assertNotNull(certificado);
-        } catch (Exception e) {
-            fail("Erro ao gerar a chave secreta: " + e.getMessage());
-        }
+    public void testVerificaEntradasDoCadastro_erroCaminhoCertificadoInvalido() {
+        Cadastro cadastro = new Cadastro(
+            "pasta/caminhoCertificadoDigital", 
+            caminhoChavePrivada, 
+            "user02", 
+            2, 
+            "12345678", 
+            "12345678"
+        );
+        String verified = cadastro.verificaEntradasDoCadastro();
+        assertEquals("Caminho do arquivo do certificado digital inválido.", verified);
     }
- 
+
     @Test
-    public void extrairDetalhesDoCertificadoDigital() {
-        String diretorioAtual = System.getProperty("user.dir");
-        String caminhoCertificado = diretorioAtual + File.separator + "CofreDigital/test/user02-x509.crt";
+    public void testVerificaEntradasDoCadastro_erroCaminhoChavePrivadaInvalido() {
+        Cadastro cadastro = new Cadastro(
+            caminhoCertificadoDigital, 
+            "pasta/caminhoChavePrivada", 
+            "user02", 
+            2, 
+            "12345678", 
+            "12345678"
+        );
+        String verified = cadastro.verificaEntradasDoCadastro();
+        assertEquals("Caminho do arquivo da chave privada inválido.", verified);
+    }
+
+    @Test
+    public void testVerificaEntradasDoCadastro_erroFraseSecretaIncorreta() {
+        Cadastro cadastro = new Cadastro(
+            caminhoCertificadoDigital, 
+            caminhoChavePrivada, 
+            "fraseIncorreta", 
+            2, 
+            "12345678", 
+            "12345678"
+        );
+        String verified = cadastro.verificaEntradasDoCadastro();
+        assertEquals("Frase secreta incorreta para a chave privada fornecida.", verified);
+    }
+
+    @Test
+    public void testVerificaEntradasDoCadastro_erroParDeChavesInvalido() {
+        Cadastro cadastro = new Cadastro(
+            caminhoDeOutroCertificadoDigital, 
+            caminhoChavePrivada, 
+            "user02", 
+            2, 
+            "12345678", 
+            "12345678"
+        );
+        String verified = cadastro.verificaEntradasDoCadastro();
+        assertEquals("Par de chaves inválido. Chave pública presente no certificado não corresponde à chave privada fornecida.", verified);
+    }
+
+    @Test
+    public void testVerificaEntradasDoCadastro_erroGrupoInvalido() {
+        Cadastro cadastro = new Cadastro(
+            caminhoCertificadoDigital, 
+            caminhoChavePrivada, 
+            "user02", 
+            0, 
+            "12345678", 
+            "12345678"
+        );
+        String verified = cadastro.verificaEntradasDoCadastro();
+        assertEquals("Grupo inválido. Escolha 1 para Administrador ou 2 para Usuário.", verified);
+    }
+
+    @Test
+    public void testVerificaEntradasDoCadastro_erroSenhasDiferentes() {
+        Cadastro cadastro = new Cadastro(
+            caminhoCertificadoDigital, 
+            caminhoChavePrivada, 
+            "user02", 
+            2, 
+            "12340678", 
+            "12345678"
+        );
+        String verified = cadastro.verificaEntradasDoCadastro();
+        assertEquals("Senha e confirmação de senha não são iguais.", verified);
+    }
+
+    @Test
+    public void testGetDetalhesDoCertificadoDigital() {
+        Cadastro cadastro = new Cadastro(
+            caminhoCertificadoDigital, 
+            caminhoChavePrivada, 
+            "user02", 
+            2, 
+            "12345678", 
+            "12345678"
+        );
+        String verified = cadastro.verificaEntradasDoCadastro();
+        assertEquals("Entradas verificadas", verified);
 
         try {
-            X509Certificate certificado = cadastro.generateObjetoCertificadoDigital(caminhoCertificado);
-            assertNotNull(certificado);
-            cadastro.extrairDetalhesDoCertificadoDigital(certificado);
+            HashMap<String, String> hashmap = cadastro.getDetalhesDoCertificadoDigital();
+            assertNotNull(hashmap);
+            System.out.println(hashmap);
         } catch (Exception e) {
-            fail("Erro ao extrair detalhes do certificado: " + e.getMessage());
+            fail("Exceção lançada durante getDetalhesDoCertificadoDigital().");
         }
+        
     }
+
+    @Test
+    public void testCadastraUsuario() {
+        Cadastro cadastro = new Cadastro(
+            caminhoCertificadoDigital, 
+            caminhoChavePrivada, 
+            "user02", 
+            2, 
+            "12345678", 
+            "12345678"
+        );
+        String verified = cadastro.verificaEntradasDoCadastro();
+        assertEquals("Entradas verificadas", verified);
+
+        try {
+            HashMap<String, String> hashmap = cadastro.getDetalhesDoCertificadoDigital();
+            assertNotNull(hashmap);
+        } catch (Exception e) {
+            fail("Exceção lançada durante getDetalhesDoCertificadoDigital().");
+        }
+
+        Database database = Database.getInstance();
+        database.deleteUsuarioAndChaveiroIfExists("user02@inf1416.puc-rio.br");
+        
+        String chaveSecreta = cadastro.cadastraUsuario();
+        assertNotNull(chaveSecreta);
+        System.out.println("chave secreta TOTP gerada: " + chaveSecreta);
+        
+        int uid = database.getUIDdoUsuarioIfExists("user02@inf1416.puc-rio.br");
+        assertFalse(uid==-1);
+    }  
 
 }
-*/
