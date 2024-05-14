@@ -1,110 +1,74 @@
-import static org.junit.Assert.assertNotNull;
-
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-
-import javax.crypto.*;
-import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
-
 import java.security.*;
 import java.security.cert.*;
-import java.security.cert.Certificate;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.*;
+
+import javax.crypto.SecretKey;
 
 public class Cadastro {
     private X509Certificate certificado;
     private PrivateKey chavePrivada;
     private PublicKey chavePublica;
 
-    private String caminhoCertificadoDigital, caminhoChavePrivada;
+    // Campos do cadastro
+    private String caminhoCertificadoDigital, caminhoChavePrivada, fraseSecreta, senha, confirmaSenha;
+    private int grupo;
+    private boolean entradasVerificadas = false;
 
-    // Informações do usuário para o banco de dados
-    String nomeUsuario, emailUsuario, hashUsuario, chaveSecretaTOTP;
-    String certificadoDigitalPEM;
-    byte[] chavePrivadaBin;
+    private String emailUsuario, nomeUsuario;
 
+    // Construtor
+
+    public Cadastro(
+        String caminhoCertificadoDigitalInput, 
+        String caminhoChavePrivadaInput, 
+        String fraseSecretaInput, 
+        int grupoInput, 
+        String senhaInput, 
+        String confirmaSenhaInput
+    ) {
+        this.caminhoCertificadoDigital = caminhoCertificadoDigitalInput;
+        this.caminhoChavePrivada = caminhoChavePrivadaInput;
+        this.fraseSecreta = fraseSecretaInput;
+        this.grupo = grupoInput;
+        this.senha = senhaInput;
+        this.confirmaSenha = confirmaSenhaInput;
+    }
 
     // Métodos para o cadastro de um novo usuário do Cofre Digital    
 
-    // Métodos de verificação das entradas de cadastro
-
-    public boolean verificaCaminhoCertificadoDigital(String caminhoCertificadoDigitalInput) {
-        if (verificaCaminhoDoArquivo(caminhoCertificadoDigitalInput)){
-            this.caminhoCertificadoDigital = caminhoCertificadoDigitalInput;
-            return true;
+    public String verificaEntradasDoCadastro() {
+        if (!verificaCaminhoDoArquivo(caminhoCertificadoDigital)) {
+            return "Caminho do arquivo do certificado digital inválido.";
         }
-        return false;
-    }
-
-    public boolean verificaCertificadoDigital() throws Exception {
-        try{
-            X509Certificate x509certificate = GestorDeSeguranca.generateX509CertificateFromFile(caminhoCertificadoDigital);
-            if (x509certificate != null) {
-                PublicKey pubkey = certificado.getPublicKey();
-                if (pubkey != null) {
-                    this.certificado = x509certificate;
-                    this.chavePublica = pubkey;
-                    return true;
-                }                
-            } 
-            return false;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }        
-    }
-
-    public boolean verificaCaminhoChavePrivada(String caminhoChavePrivadaInput) {
-        if (verificaCaminhoDoArquivo(caminhoChavePrivadaInput)){
-            this.caminhoChavePrivada = caminhoChavePrivadaInput;
-            return true;
+        if (!verificaCertificadoDigital()) {
+            return "Certificado digital inválido";
         }
-        return false;
-    }
-
-    public boolean verificaFraseSecretaDaChavePrivada(String fraseSecreta) {
-        try{
-            PrivateKey pkey = GestorDeSeguranca.generatePrivateKeyFromFile(caminhoChavePrivada, fraseSecreta);
-            if (pkey != null) {
-                this.chavePrivada = pkey;
-                return true;
-            } 
-            return false;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        if (!verificaCaminhoDoArquivo(caminhoChavePrivada)) {
+            return "Caminho do arquivo da chave privada inválido.";
         }
-    }
-
-    public boolean verificaChavePrivadaComChavePublica() {
-        try {
-            boolean chavePrivadaVerificada = GestorDeSeguranca.verificaChavePrivadaComChavePublica(chavePrivada, chavePublica);
-            return chavePrivadaVerificada;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
+        if (!verificaFraseSecretaDaChavePrivada()) {
+            return "Frase secreta incorreta para a chave privada fornecida.";
         }
-    }
-       
-    public boolean verificaSenhasIguais(String senha, String confirmarSenha) {
+        if (!verificaChavePrivadaComChavePublica()) {
+            return "Par de chaves inválido. Chave pública presente no certificado não corresponde à chave privada fornecida.";
+        }
+        if (grupo!=1 && grupo!=2) {
+            return "Grupo inválido. Escolha 1 para Administrador ou 2 para Usuário.";
+        }
         /* Verificação de formato de senha em tempo real será feito pela interface:
         * As senhas pessoais são sempre formadas por oito, nove ou dez números formados por dígitos de 0 a 9. 
         * Não podem ser aceitas sequências de números repetidos.
-        * Método verificaSenhasIguais(senha, confirmaSenha) considera o recebimento de senhas com formato já validado.
+        * Nessa verificação considera-se o recebimento de senhas com formato já validado.
         */
-        if(senha.equals(confirmarSenha)) {
-            this.hashUsuario = GestorDeSeguranca.generateHashDaSenha(senha);
-            return true;
+        if (!senha.equals(confirmaSenha)) {
+            return "Senha e confirmação de senha não são iguais.";
         }
-        return false;
+        this.entradasVerificadas = true;
+        return "Entradas verificadas";
     }
 
-    // Método de confirmação das informações de cadastro
-
-    public HashMap<String, String> getDetalhesDoCertificadoDigital() throws CertificateParsingException {
+    public HashMap<String, String> getDetalhesDoCertificadoDigital() throws Exception {
         HashMap<String, String> certificadoMap = new HashMap<>();
         try{
             // Extrair a versão do certificado
@@ -147,17 +111,74 @@ public class Cadastro {
         }        
     }
 
-    // Método de cadastro das informações confirmadas no banco de dados do Cofre Digital
-
-    public String cadastraUsuario(int grupo) {
-        this.chavePrivadaBin = GestorDeSeguranca.generateChavePrivadaBIN(caminhoChavePrivada);
-        // Checar recebimento correto de todas as informações de cadastro
-        if (grupo != 1 && grupo != 2) {
-            System.err.println("Grupo inválido. Escolha 1 para Administrador ou 2 para Usuário.");
+    public String cadastraUsuario() {
+        if (!entradasVerificadas) {
+            System.err.println("Entradas do cadastro não verificadas.");
             return null;
         }
-        // todo: checar se há todos os itens neccessários e chamar funções de insert no banco
-        return "chave secreta totp";
+
+        if (emailUsuario == null) {
+            System.err.println("Erro ao extrair o email do usuário.");
+            return null;
+        }
+
+        if (nomeUsuario == null) {
+            System.err.println("Erro ao extrair o nome do usuário.");
+            return null;
+        }
+
+        String hashUsuario = GestorDeSeguranca.generateHashDaSenha(senha);
+        if (hashUsuario == null) {
+            System.err.println("Erro ao gerar o hash da senha do usuário.");
+            return null;
+        }
+
+        String chaveSecretaTOTP = GestorDeSeguranca.generateChaveSecreta();
+        byte[] chaveSecretaTOTPcriptografada = null;
+        if(chaveSecretaTOTP != null) {
+            try {
+                SecretKey kaes = GestorDeSeguranca.generateKaes(senha);
+                chaveSecretaTOTPcriptografada = GestorDeSeguranca.encryptChave(chaveSecretaTOTP.getBytes("UTF-8"), kaes);
+                if (chaveSecretaTOTPcriptografada == null) {
+                    System.err.println("Erro ao gerar a chave secreta TOTP criptografada.");
+                    return null;
+                }
+                System.out.println("chave: " + chaveSecretaTOTPcriptografada);
+            } catch (Exception e) {
+                System.err.println("Erro ao criptografar a chave secreta TOTP com a senha do usuário.");
+                e.printStackTrace();
+                return null;
+            }
+        } else {
+            System.err.println("Erro ao gerar uma chave secreta TOTP.");
+            return null;
+        }  
+
+        byte[] chavePrivadaBIN = GestorDeSeguranca.generateChavePrivadaBIN(caminhoChavePrivada);
+        if (chavePrivadaBIN == null) {
+            System.err.println("Erro ao gerar a chave privada (.BIN).");
+            return null;
+        }
+
+        String certificadoDigitalPEM = GestorDeSeguranca.generateCertificadoPEM(caminhoCertificadoDigital);
+        if (certificadoDigitalPEM == null) {
+            System.err.println("Erro ao gerar o certificado digital (.PEM).");
+            return null;
+        } 
+
+        // Inserindo o novo usuário no banco de dados do Cofre Digital
+        Database database = Database.getInstance();
+        boolean usuarioInserido = database.insertUser(
+            emailUsuario, 
+            nomeUsuario, 
+            hashUsuario, 
+            chaveSecretaTOTPcriptografada, 
+            chavePrivadaBIN, 
+            certificadoDigitalPEM, 
+            grupo
+        );
+
+        return usuarioInserido ? chaveSecretaTOTP : null;   // Se a inserção for bem sucedida, retorna a chave secreta gerada
     }
 
     // Métodos auxiliares do cadastro de um novo usuário do Cofre Digital
@@ -167,6 +188,49 @@ public class Cadastro {
             FileInputStream arquivoInputStream = new FileInputStream(caminhoArquivo);
             arquivoInputStream.close(); 
             return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean verificaCertificadoDigital() {
+        try{
+            X509Certificate x509certificate = GestorDeSeguranca.generateX509CertificateFromFile(caminhoCertificadoDigital);
+            if (x509certificate != null) {
+                PublicKey pubkey = x509certificate.getPublicKey();
+                if (pubkey != null) {
+                    this.certificado = x509certificate;
+                    this.chavePublica = pubkey;
+                    return true;
+                }                
+            } 
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }        
+    }
+
+    private boolean verificaFraseSecretaDaChavePrivada() {
+        try{
+            PrivateKey pkey = GestorDeSeguranca.generatePrivateKeyFromFile(caminhoChavePrivada, fraseSecreta);
+            if (pkey != null) {
+                this.chavePrivada = pkey;
+                return true;
+            } 
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    private boolean verificaChavePrivadaComChavePublica() {
+        try {
+            boolean chavePrivadaVerificada = GestorDeSeguranca.verificaChavePrivadaComChavePublica(chavePrivada, chavePublica);
+            return chavePrivadaVerificada;
+
         } catch (Exception e) {
             e.printStackTrace();
             return false;

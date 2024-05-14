@@ -19,6 +19,7 @@ public class Database {
             this.connection = DriverManager.getConnection(url, usuario, senha);
             createDatabaseIfNotExists();
             this.connection.setCatalog("CofreDigital");
+            initDatabaseIfNotInitialized();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -56,7 +57,7 @@ public class Database {
         }
     }
 
-    public void initDatabase() {
+    private void initDatabaseIfNotInitialized() {
         /* Cria as tabelas do banco de dados CofreDigital, se já não existirem */
         createTableChaveiro(); 
         createTableGrupos(); 
@@ -94,10 +95,10 @@ public class Database {
             Statement statement = connection.createStatement();
             String sql = "CREATE TABLE IF NOT EXISTS Usuarios (" +
                          "UID INT PRIMARY KEY AUTO_INCREMENT," +
-                         "email VARCHAR(300) NOT NULL UNIQUE," +
-                         "nome VARCHAR(200) NOT NULL," +
+                         "email VARCHAR(250) NOT NULL UNIQUE," +
+                         "nome VARCHAR(250) NOT NULL," +
                          "hash VARCHAR(60) NOT NULL," +
-                         "chave_secreta VARCHAR(32) NOT NULL," +
+                         "chave_secreta BLOB(48) NOT NULL," +
                          "chaveiro_fk INT," +
                          "grupo_fk INT," +
                          "FOREIGN KEY (chaveiro_fk) REFERENCES Chaveiro(KID)," +
@@ -115,7 +116,7 @@ public class Database {
             Statement statement = connection.createStatement();
             String sql = "CREATE TABLE IF NOT EXISTS Chaveiro (" +
                          "KID INT PRIMARY KEY AUTO_INCREMENT," +
-                         "chave_privada_criptografada BLOB(512) NOT NULL," +    // Checar esse tamanhos depois
+                         "chave_privada_criptografada BLOB(512) NOT NULL," +  
                          "certificado_digital TEXT(512) NOT NULL," +
                          "CONSTRAINT unique_chave_certificado UNIQUE (chave_privada_criptografada(512), certificado_digital(512))" +
                          ")";
@@ -304,6 +305,53 @@ public class Database {
         return uid;     // Se usuário não encontrado, retorna -1
     }
 
+    public boolean deleteUsuarioAndChaveiroIfExists(String email) {
+        boolean deleted = false;
+        int uid = getUIDdoUsuarioIfExists(email);
+        if (uid != -1) {
+            try {
+                int kid = getChaveiroFK(uid);
+                if (kid != -1) {
+                    // Excluindo o usuário da tabela Usuarios
+                    String deleteUsuarioSQL = "DELETE FROM Usuarios WHERE UID = ?";
+                    PreparedStatement deleteUsuarioStatement = connection.prepareStatement(deleteUsuarioSQL);
+                    deleteUsuarioStatement.setInt(1, uid);
+                    deleteUsuarioStatement.executeUpdate();
+        
+                    // Exclua o registro correspondente na tabela Chaveiro
+                    String deleteChaveiroSQL = "DELETE FROM Chaveiro WHERE KID = ?";
+                    PreparedStatement deleteChaveiroStatement = connection.prepareStatement(deleteChaveiroSQL);
+                    deleteChaveiroStatement.setInt(1, kid);
+                    deleteChaveiroStatement.executeUpdate(); 
+
+                    deleted = true;
+                }     
+            } catch (SQLException e) {
+                e.printStackTrace();
+                return false;
+            }
+        } 
+        return deleted;
+    }
+    
+    private int getChaveiroFK(int uid) {
+        int chaveiro_fk = -1;
+        try {
+            String sql = "SELECT chaveiro_fk FROM Usuarios WHERE UID = ?";
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                chaveiro_fk = resultSet.getInt("chaveiro_fk");
+            }
+            return chaveiro_fk;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }        
+    }
+    
     public HashMap<String, String> getinformacoesDoUsuario(int uid){
         HashMap<String, String> info = null;
         String sql = "SELECT UID, nome, grupo_nome " +
@@ -372,8 +420,8 @@ public class Database {
         return hash;     // Se usuário não encontrado, retorna null
     }
 
-    public String getChaveSecretaDoUsuario(int uid) {
-        String chaveSecreta = null;
+    public byte[] getChaveSecretaDoUsuario(int uid) {
+        byte[] chaveSecreta = null;
         String sql = "SELECT chave_secreta " +
                      "FROM Usuarios u " +
                      "WHERE u.UID = ?";
@@ -383,7 +431,7 @@ public class Database {
             statement.setInt(1, uid);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                chaveSecreta = resultSet.getString("chave_secreta");
+                chaveSecreta = resultSet.getBytes("chave_secreta");
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -456,6 +504,59 @@ public class Database {
             return null;
         }
         return pkey;     // Se chaveiro do usuário não encontrado, retorna null
+    }
+
+    private int insertChaveiro(byte[] chave_privada_criptografada_bin, String certificado_digital_pem) {
+        int kid = -1;
+        String sql = "INSERT INTO Chaveiro (chave_privada_criptografada, certificado_digital) VALUES (?, ?)";
+ 
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            statement.setBytes(1, chave_privada_criptografada_bin);
+            statement.setString(2, certificado_digital_pem);
+            int lines = statement.executeUpdate();
+ 
+            if (lines > 0) {
+                ResultSet resultSet = statement.getGeneratedKeys();
+                if (resultSet.next()) {
+                    kid = resultSet.getInt(1);
+                }
+            }
+            return kid;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return -1;
+        }
+    }
+
+    public boolean insertUser(String email, String nome, String hash, byte[] chave_secreta_criptografada, 
+        byte[] chave_privada_criptografada_bin, String certificado_digital_pem, int grupo) {
+
+        boolean status = false;
+        int kid = insertChaveiro(chave_privada_criptografada_bin, certificado_digital_pem);
+
+        try{
+            if (kid != -1) {
+                String sql = "INSERT INTO Usuarios (email, nome, hash, chave_secreta, chaveiro_fk, grupo_fk) VALUES (?, ?, ?, ?, ?, ?)";
+                
+                PreparedStatement statement = connection.prepareStatement(sql);
+                statement.setString(1, email);
+                statement.setString(2, nome);
+                statement.setString(3, hash);
+                statement.setBytes(4, chave_secreta_criptografada);
+                statement.setInt(5, kid);
+                statement.setInt(6, grupo);
+
+                int lines = statement.executeUpdate();
+                status = lines > 0;
+            }
+            return status;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return false;
+        }
     }
 
 }

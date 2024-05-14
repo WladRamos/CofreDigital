@@ -21,7 +21,6 @@ public class DatabaseTest {
     @Test
     public void testInitDatabase() {
         Database database = Database.getInstance();
-        database.initDatabase(); // Inicializa o banco de dados
 
         // Verifica se as tabelas foram criadas corretamente
         try {

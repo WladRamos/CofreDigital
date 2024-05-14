@@ -384,57 +384,35 @@ public class InterfaceCofreDigital {
         janelaPrincipal.setVisible(true);
 
         botaoCadastrar.addActionListener(e -> {
-            Cadastro cadastro = new Cadastro();
-            Boolean caminhoCertificadoVerificado = cadastro.verificaCaminhoCertificadoDigital(campoCertificado.getText());
-            if (caminhoCertificadoVerificado){
-                Boolean certificadoVerificado = false;
-                try{
-                    certificadoVerificado = cadastro.verificaCertificadoDigital();
-                }catch(Exception x){
+            Object grupoSelecionado = comboBoxGrupo.getSelectedItem();
+            int codigoGrupo = 0;
+            if ("Administrador".equals(grupoSelecionado)) {
+                codigoGrupo = 1;
+            } else if ("Usuário".equals(grupoSelecionado)) {
+                codigoGrupo = 2;
+            }
+
+            Cadastro cadastro = new Cadastro(
+                campoCertificado.getText(), 
+                campoChavePrivada.getText(), 
+                campoFraseSecreta.getText(), 
+                codigoGrupo, 
+                new String (campoSenha.getPassword()), 
+                new String (campoConfirmacaoSenha.getPassword())
+            );
+
+            String msg = cadastro.verificaEntradasDoCadastro();
+            if (msg.equals("Entradas verificadas")) {
+                try {
+                    HashMap<String,String> info = cadastro.getDetalhesDoCertificadoDigital();
+                    mostrarPopUpConfirmacao(cadastro, info);
+                } catch (Exception x) {
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Falha ao extrair as informações do certificado digital.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                     x.printStackTrace();
                 }
-                if(certificadoVerificado){
-                    Boolean caminhoChaveVerificado = cadastro.verificaCaminhoChavePrivada(campoChavePrivada.getText());
-                    if(caminhoChaveVerificado){
-                        Boolean fraseSecretaVerificada = cadastro.verificaFraseSecretaDaChavePrivada(campoFraseSecreta.getText());
-                        if(fraseSecretaVerificada){
-                            Boolean parDeChavesVerificado = cadastro.verificaChavePrivadaComChavePublica();
-                            if(parDeChavesVerificado){
-                                Boolean senhasIguaisVerificadas = cadastro.verificaSenhasIguais(campoSenha.getText(), campoConfirmacaoSenha.getText());
-                                if (senhasIguaisVerificadas) {
-                                    try{
-                                        Object grupoSelecionado = comboBoxGrupo.getSelectedItem();
-                                        int codigoGrupo = 0;
-                                        if ("Administrador".equals(grupoSelecionado)) {
-                                            codigoGrupo = 1;
-                                        } else if ("Usuário".equals(grupoSelecionado)) {
-                                            codigoGrupo = 2;
-                                        }
-                                        HashMap<String,String> info = cadastro.getDetalhesDoCertificadoDigital();
-                                        mostrarPopUpConfirmacao(cadastro, info, codigoGrupo);
-                                    }catch(Exception x){
-                                        JOptionPane.showMessageDialog(janelaPrincipal, "Problema ao extrair informações do Certificado", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                                        x.printStackTrace();
-                                    }
-                                }else{
-                                    JOptionPane.showMessageDialog(janelaPrincipal, "Senha e confirmação de senha diferentes.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                                }
-                            }else{
-                                JOptionPane.showMessageDialog(janelaPrincipal, "Par de chaves inválido.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                            }
-                        }else{
-                            JOptionPane.showMessageDialog(janelaPrincipal, "Frase secreta inválida.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                        }
-                    }else{
-                        JOptionPane.showMessageDialog(janelaPrincipal, "Caminho da chave privada inválido.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                    }
-                }else{
-                    JOptionPane.showMessageDialog(janelaPrincipal, "Certificado inválido.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                }
-            }else{
-                JOptionPane.showMessageDialog(janelaPrincipal, "Caminho do certificado inválido.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-            }
-            
+            } else {
+                JOptionPane.showMessageDialog(janelaPrincipal, msg, "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+            }                                       
         });
     }
 
@@ -539,7 +517,7 @@ public class InterfaceCofreDigital {
         });
     }
 
-    private void mostrarPopUpConfirmacao(Cadastro cadastro, HashMap<String,String> info, int codigoGrupo) {
+    private void mostrarPopUpConfirmacao(Cadastro cadastro, HashMap<String,String> info) {
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(300, 300);
@@ -559,7 +537,7 @@ public class InterfaceCofreDigital {
         // Criar os botões
         JButton confirmButton = new JButton("Confirmar");
         confirmButton.addActionListener(e -> {
-            String codigoTOTP = cadastro.cadastraUsuario(codigoGrupo);
+            String codigoTOTP = cadastro.cadastraUsuario();
             mostrarPopUpCodigoTOTP(codigoTOTP);
         });
 
