@@ -14,6 +14,7 @@ import java.util.List;
 
 public class InterfaceCofreDigital {
     private Database database;
+    private Autenticacao autenticacao;
     private JFrame janelaPrincipal;
     private JTextField campoTextoTOTP;
     private JPasswordField campoSenha;
@@ -22,8 +23,9 @@ public class InterfaceCofreDigital {
     private JButton botaoOK;
     private ArrayList<String[]> possibilidadesSenha = new ArrayList<>();
     private String grupoUsuario, nomeUsuario, qtdAcessosUsuario, emailUsuario;
-    private int idUsuario;
+    private int idUsuario, idAdministrador;
     private String fraseSecretaAdmin;
+    private final String emailAdmin = "admin@inf1416.puc-rio.br";
 
 
     public InterfaceCofreDigital(int status) {
@@ -65,8 +67,17 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
 
         btnConfirma.addActionListener(e ->{
-            fraseSecretaAdmin = campoFraseSecretaAdmin.getText();
-            mostrarTelaNomeLogin();
+            String textoCampoFraseSecretaAdmin = campoFraseSecretaAdmin.getText();
+            idAdministrador = database.getUsuarioIfExists(emailAdmin);
+            byte[] chavePrivCript =  database.getChavePrivadaCriptografadaDoUsuario(idAdministrador);
+            PrivateKey objPrivateKey = GestorDeSeguranca.generatePrivateKeyFromBIN(chavePrivCript, textoCampoFraseSecretaAdmin);
+            if(objPrivateKey != null){
+                fraseSecretaAdmin = textoCampoFraseSecretaAdmin;
+                mostrarTelaNomeLogin();
+            }
+            else{
+                JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do admin incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
+            }
         });
 
         janelaPrincipal.pack();
@@ -110,13 +121,14 @@ public class InterfaceCofreDigital {
         janelaPrincipal.setVisible(true);
 
         botaoLogin.addActionListener(e -> {
-            emailUsuario = campoTextoEmail.getText();
-            int uid = database.getUsuarioIfExists(emailUsuario);
+            String campoTextoEmailInput = campoTextoEmail.getText();
+            int uid = database.getUsuarioIfExists(campoTextoEmailInput);
             HashMap<String, String> u = null;
             if (uid != -1){
                 idUsuario = uid;
                 u = database.getInfoDoUsuario(uid);
                 if (u != null) {
+                    emailUsuario = campoTextoEmailInput;
                     nomeUsuario = u.get("nome");
                     grupoUsuario = u.get("grupo");
                     qtdAcessosUsuario = u.get("numero_de_acessos");
@@ -160,8 +172,8 @@ public class InterfaceCofreDigital {
         });
 
         botaoOK.addActionListener(e -> {
-            Autenticacao aut = new Autenticacao(idUsuario);
-            Boolean senhaValidada = aut.verificaSenha(possibilidadesSenha);
+            autenticacao = new Autenticacao(idUsuario);
+            Boolean senhaValidada = autenticacao.verificaSenha(possibilidadesSenha);
             if (senhaValidada) {
                 tentativasErradas = 0;
                 mostrarTelaTOTP();
@@ -169,7 +181,8 @@ public class InterfaceCofreDigital {
                 tentativasErradas++;
                 JOptionPane.showMessageDialog(janelaPrincipal, "Senha Incorreta.", "Erro", JOptionPane.ERROR_MESSAGE);
                 if (tentativasErradas >= 3) {
-                    bloquearAcesso();
+                    database.insertIntoRegistros(3006, idUsuario, null);
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Acesso bloqueado por 2 minutos após três tentativas incorretas.", "Bloqueio de Acesso", JOptionPane.ERROR_MESSAGE);
                     mostrarTelaNomeLogin();
 
                 }
@@ -182,13 +195,6 @@ public class InterfaceCofreDigital {
         
         janelaPrincipal.pack();
         janelaPrincipal.setVisible(true);
-    }
-
-    private void bloquearAcesso() {
-        JOptionPane.showMessageDialog(janelaPrincipal, "Acesso bloqueado após três tentativas incorretas.", "Bloqueio de Acesso", JOptionPane.ERROR_MESSAGE);
-        // Implementar lógica de bloqueio aqui, como desabilitar botões ou fechar a janela
-        botaoOK.setEnabled(false);
-        campoSenha.setEditable(false);
     }
     
     private void validarComprimentoSenha() {
@@ -258,7 +264,6 @@ public class InterfaceCofreDigital {
         System.out.println("valid TOTP: " + inputTOTPvalido);
 
         botaoOkTOTP.addActionListener(e -> {
-            Autenticacao autenticacao = new Autenticacao(idUsuario);
             Boolean TOTPValidado = autenticacao.verificaTOTP(campoTextoTOTP.getText());
             if (TOTPValidado) {
                 tentativasErradas = 0;
@@ -267,7 +272,8 @@ public class InterfaceCofreDigital {
                 tentativasErradas++;
                 JOptionPane.showMessageDialog(janelaPrincipal, "Código Incorreto.", "Erro", JOptionPane.ERROR_MESSAGE);
                 if (tentativasErradas >= 3) {
-                    bloquearAcesso();
+                    database.insertIntoRegistros(4006, idUsuario, null);
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Acesso bloqueado por 2 minutos após três tentativas incorretas.", "Bloqueio de Acesso", JOptionPane.ERROR_MESSAGE);
                     mostrarTelaNomeLogin();
                 }
             }
@@ -277,8 +283,7 @@ public class InterfaceCofreDigital {
 
     private String getValidTOTP() {
         try {
-            int userID = database.getUsuarioIfExists("user02@inf1416.puc-rio.br");
-            Database database = Database.getInstance();
+            int userID = database.getUsuarioIfExists(emailUsuario);
             byte[] chaveSecretaCodificadaBase32Cifrada = database.getChaveSecretaCriptografadaDoUsuario(userID);
             SecretKey chaveAES = GestorDeSeguranca.generateKaes("12345678");
             // Decriptar a chave secreta com a Kaes gerada
@@ -309,7 +314,7 @@ public class InterfaceCofreDigital {
     
         JPanel painelCorpo2 = new JPanel(new GridLayout(3, 1));
 
-        if ("1".equals(grupoUsuario) || "Administrador".equals(grupoUsuario)) {
+        if ("Administrador".equals(grupoUsuario)) {
             JButton botaoCadastrar = new JButton("Cadastrar um novo usuário");
             painelCorpo2.add(botaoCadastrar);
             botaoCadastrar.addActionListener(e -> mostrarTelaCadastro(1));
@@ -346,6 +351,8 @@ public class InterfaceCofreDigital {
             painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
             painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
             janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
+        } else {
+            janelaPrincipal.add(labelTituloTela, BorderLayout.NORTH);
         }
         
         Box verticalBox = Box.createVerticalBox();
@@ -401,8 +408,6 @@ public class InterfaceCofreDigital {
         painelBotoes.add(botaoCadastrar);
     
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
-        janelaPrincipal.pack();
-        janelaPrincipal.setVisible(true);
 
         botaoCadastrar.addActionListener(e -> {
             Object grupoSelecionado = comboBoxGrupo.getSelectedItem();
@@ -436,6 +441,10 @@ public class InterfaceCofreDigital {
                 JOptionPane.showMessageDialog(janelaPrincipal, msg, "Erro de Validação", JOptionPane.ERROR_MESSAGE);
             }                                       
         });
+        janelaPrincipal.revalidate();
+        janelaPrincipal.repaint();
+        janelaPrincipal.pack();
+        janelaPrincipal.setVisible(true);
     }
 
     private boolean validarSenhaCadastro(char[] senha) {
@@ -555,7 +564,7 @@ public class InterfaceCofreDigital {
         Box verticalBox = Box.createVerticalBox();
 
         JPanel painelCorpo2 = new JPanel(new GridLayout(6, 2, 5, 5));
-        painelCorpo2.add(new JLabel("Caminho da pasta:"));
+        painelCorpo2.add(new JLabel("Caminho da Pasta Segura:"));
         JTextField caminhoPasta = new JTextField(255);
         painelCorpo2.add(caminhoPasta);
 
@@ -606,20 +615,44 @@ public class InterfaceCofreDigital {
 
         btnListar.addActionListener(e -> {
             try {
-                // Assume que os métodos de geração de chave e certificado são previamente definidos
-                String diretorioAtual = System.getProperty("user.dir");
-                String caminhoChavePrivada = diretorioAtual + File.separator + "CofreDigital/test/admin-pkcs8-aes.pem";
-                String caminhoCertificadoDigital = diretorioAtual + File.separator + "CofreDigital/test/admin-x509.crt";
-                PrivateKey privateKey = GestorDeSeguranca.generatePrivateKeyFromFile(caminhoChavePrivada, "admin");
-                X509Certificate certificado = GestorDeSeguranca.generateX509CertificateFromFile(caminhoCertificadoDigital);
-                PublicKey publicKey = certificado.getPublicKey();
-                RecuperaArquivo recuperaArquivo = new RecuperaArquivo("user@example.com", "usuario", /*caminhoPasta.getText()*/"CofreDigital/Pacote-T4/Files/", publicKey, privateKey);
-                List<List<String>> resultado = recuperaArquivo.decriptaEVerificaIndex();
+                byte[] chaveSecredaAdminCript = database.getChavePrivadaCriptografadaDoUsuario(idAdministrador);
+                PrivateKey objPrivateKeyAdmin = GestorDeSeguranca.generatePrivateKeyFromBIN(chaveSecredaAdminCript, fraseSecretaAdmin);
+                if(objPrivateKeyAdmin != null){
+                    String certificadoAdminPem = database.getCertificadoDigitalDoUsuario(idAdministrador);
+                    X509Certificate objCertificadoAdmin = GestorDeSeguranca.generateX509CertificateFromPEM(certificadoAdminPem);
+                    PublicKey objPublicKeyAdmin = objCertificadoAdmin.getPublicKey();
 
-                // Preenche a tabela com os dados retornados
-                model.setRowCount(0); // Limpa linhas antigas
-                for (List<String> rowData : resultado) {
-                    model.addRow(rowData.toArray());
+                    byte[] chaveSecredaUserCript = database.getChavePrivadaCriptografadaDoUsuario(idUsuario);
+                    PrivateKey objPrivateKeyUser = GestorDeSeguranca.generatePrivateKeyFromBIN(chaveSecredaUserCript, fraseSecretaUsuario.getText());
+                    if(objPrivateKeyUser != null){
+                        String certificadoUserPem = database.getCertificadoDigitalDoUsuario(idUsuario);
+                        X509Certificate objCertificadoUser = GestorDeSeguranca.generateX509CertificateFromPEM(certificadoUserPem);
+                        PublicKey objPublicKeyUser = objCertificadoUser.getPublicKey();
+
+                        RecuperaArquivo recuperaArquivo = new RecuperaArquivo(emailUsuario, grupoUsuario, caminhoPasta.getText(), objPublicKeyAdmin, objPrivateKeyAdmin, objPublicKeyUser, objPrivateKeyUser);
+                        String resultRecupecacao = recuperaArquivo.verificaArquivos("index");
+                        if(resultRecupecacao.equals("OK")){
+                            List<List<String>> resultado = recuperaArquivo.recuperaIndex();
+                            System.out.println(resultado.isEmpty());
+                            for (List<String> file : resultado) {
+                                System.out.println(file);
+                            }
+                            // Preenche a tabela com os dados retornados
+                            model.setRowCount(0); // Limpa linhas antigas
+                            for (List<String> rowData : resultado) {
+                                model.addRow(rowData.toArray());
+                            }
+                            tabelaArquivos.revalidate();
+                            tabelaArquivos.repaint();
+                        }else{
+                            JOptionPane.showMessageDialog(janelaPrincipal, resultRecupecacao, "Erro", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }else{
+                        JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do usuário incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
+                    }
+                }
+                else{
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do admin incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -705,6 +738,7 @@ public class InterfaceCofreDigital {
         botaoEncerrarSessao.addActionListener(e -> {
             // Reseta todas as variáveis do usuário
             database = null;
+            autenticacao = null;
             campoTextoTOTP = null;
             campoSenha = null;
             tentativasErradas = 0;
