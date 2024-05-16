@@ -1,4 +1,5 @@
 import java.sql.Timestamp;
+import java.time.LocalTime;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -519,8 +520,11 @@ public class Database {
         }
     } 
     
-    public boolean insertIntoRegistros(int mid, Timestamp timestamp, int uid, String arquivo) {
+    public boolean insertIntoRegistros(int mid, int uid, String arquivo) {
         try {
+            LocalTime horaAtual = LocalTime.now();
+            Timestamp timestamp = Timestamp.valueOf(horaAtual.atDate(java.time.LocalDate.now()));
+    
             String sql = "INSERT INTO Registros (mensagem_fk, timestamp, usuario_fk, arquivo_selecionado_decriptacao) VALUES (?, ?, ?, ?)";
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, mid);
