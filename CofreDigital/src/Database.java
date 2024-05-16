@@ -325,7 +325,7 @@ public class Database {
     }
 
     public HashMap<String, String> getInfoDoUsuario(int uid) {
-        String sql = "SELECT UID, nome, grupo_nome FROM Usuarios u " +
+        String sql = "SELECT UID, nome, nome_grupo FROM Usuarios u " +
                      "JOIN Grupos g ON u.grupo_fk = g.GID " +
                      "WHERE u.UID = ?";
         try {
@@ -336,7 +336,7 @@ public class Database {
             // Inserindo as informações do usuário no HashMap    
             HashMap<String, String> info = new HashMap<>();
             info.put("nome", resultSet.getString("nome"));
-            info.put("grupo", resultSet.getString("grupo_nome"));
+            info.put("grupo", resultSet.getString("nome_grupo"));
             info.put("numero_de_acessos", Integer.toString(countMessagesForUser(uid, 2003)));   // duvida: conferir se a mensagem 2003 é o que configura um acesso
             return info;
 
