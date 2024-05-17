@@ -428,13 +428,14 @@ public class Database {
     }
 
     public boolean usuarioIsBlocked(int uid) {
+        int msg1 = 3007, msg2 = 4007;
         String sql = "SELECT timestamp FROM Registros" +
                      "WHERE usuario_fk = ? AND (mensagem_fk = ? OR mensagem_fk = ?)";
         try {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, uid);
-            statement.setInt(2, 3007);
-            statement.setInt(3, 4007);
+            statement.setInt(2, msg1);
+            statement.setInt(3, msg2);
             ResultSet resultSet = statement.executeQuery();
 
             Timestamp latestTimestamp = null;
