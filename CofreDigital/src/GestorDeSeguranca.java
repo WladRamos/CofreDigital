@@ -69,16 +69,6 @@ public class GestorDeSeguranca {
         return buf.toString();
     }
 
-    public static boolean verificaCaminhoDoArquivo(String caminhoArquivo) {
-        try {
-            FileInputStream arquivoInputStream = new FileInputStream(caminhoArquivo);
-            arquivoInputStream.close(); 
-            return true;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
     // Métodos Chave secreta TOTP
 
     public static String generateChaveSecreta() {

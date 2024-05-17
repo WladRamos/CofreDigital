@@ -1,17 +1,9 @@
 import javax.crypto.Cipher;
 import java.io.*;
-import java.security.Key;
-import java.security.PrivateKey;
-import java.security.PublicKey;
-import java.security.Signature;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Arrays;
-
-
+import java.security.*;
+import java.util.*;
 
 public class RecuperaArquivo {
-
     //private String emailUsuario;
     private String grupoUsuario;
     private String pastaSegura;
@@ -32,12 +24,67 @@ public class RecuperaArquivo {
         this.privateKeyUser = privateKeyUser;
     }
 
-    private byte[] decryptArquivo(String nomeArquivo){
+    // Métodos públicos da recuperção de arquivos
+
+    public String verificaArquivos(String nomeArquivo){
+        Boolean arquivosExistem = (arquivoExiste(nomeArquivo + ".env") && arquivoExiste(nomeArquivo + ".enc") && arquivoExiste(nomeArquivo + ".asd"));
+        if(!arquivosExistem) {
+            return "Caminho de pasta inválido.";
+        }
+        byte[] textoPlano = decryptArquivo(nomeArquivo);
+        if(textoPlano == null) {
+            return "Erro na decriptação do arquivo: " + nomeArquivo;
+        } else {
+            if(!verificaAutentEIntegrArquivo(textoPlano, nomeArquivo)) {
+                return "Erro ao verificar integridade e autenticidade do arquivo: " + nomeArquivo;
+            }
+        }
+        if(nomeArquivo == "index") {
+            textoPlanoIndice = textoPlano;
+        } else {
+            textoPlanoDocx = textoPlano;
+        }
+        return "OK";
+    }
+    
+    public List<List<String>> recuperaIndex(){
+        List<List<String>> listaArquivos = new ArrayList<>();
+        try {
+            // Converte o texto plano em uma lista de listas
+            String conteudoIndex = new String(textoPlanoIndice, "UTF-8");
+            
+            String[] linhas = conteudoIndex.split("\n");
+            for (String linha : linhas) {
+                List<String> infoArquivo = Arrays.asList(linha.trim().split("\\s+"));
+                listaArquivos.add(infoArquivo);
+            }
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        for (List<String> file : listaArquivos) {
+            System.out.println(file);
+        }
+        return filtro(listaArquivos);
+    }
+
+    public void recuperaArquivosDocx(String nomeSecreto) throws Exception {
+        // Escreve os dados descriptografados em um novo arquivo com o nome secreto
+        try (FileOutputStream fos = new FileOutputStream(pastaSegura + "/" + nomeSecreto)) {
+            fos.write(textoPlanoDocx);
+        } catch (IOException e) {
+            throw new IOException("Erro ao escrever o arquivo descriptografado. ", e);
+        }  
+    }
+
+    // Métodos auxiliares da recuperção de arquivos
+
+    private byte[] decryptArquivo(String nomeArquivo) {
         try{
             PrivateKey privateKey;
-            if(nomeArquivo == "index"){
+            if(nomeArquivo == "index") {
                 privateKey = privateKeyAdmin;
-            }else{
+            } else {
                 privateKey = privateKeyUser;
             }
             // Decripta a semente da chave simétrica
@@ -58,11 +105,10 @@ public class RecuperaArquivo {
         }
         catch(Exception e){
             return null;
-        }
-        
+        }  
     }
 
-    private Boolean verificaAutentEIntegrArquivo(byte[] textoPlano, String nomeArquivo){
+    private Boolean verificaAutentEIntegrArquivo(byte[] textoPlano, String nomeArquivo) {
         try{
             PublicKey publicKey;
             if(nomeArquivo == "index"){
@@ -84,66 +130,6 @@ public class RecuperaArquivo {
         }
     }
 
-    public String verificaArquivos(String nomeArquivo){
-        //Boolean caminhoVerificado = GestorDeSeguranca.verificaCaminhoDoArquivo(pastaSegura);
-        Boolean caminhoVerificado = true;
-        if(!caminhoVerificado){
-            return "Problema na Pasta";
-        }else{
-            Boolean arquivosExistem = (arquivoExiste(nomeArquivo + ".env") && arquivoExiste(nomeArquivo + ".enc") && arquivoExiste(nomeArquivo + ".asd"));
-            if(!arquivosExistem){
-                return "Problema na Pasta";
-            }
-        }
-
-        byte[] textoPlano = decryptArquivo(nomeArquivo);
-        if(textoPlano == null){
-            return "Erro na decriptação do arquivo: " + nomeArquivo;
-        }else{
-            if(!verificaAutentEIntegrArquivo(textoPlano, nomeArquivo)){
-                return "Erro ao verificar integridade e autenticidade do arquivo: " + nomeArquivo;
-            }
-        }
-
-        if(nomeArquivo == "index"){
-            textoPlanoIndice = textoPlano;
-        }else{
-            textoPlanoDocx = textoPlano;
-        }
-        return "OK";
-    }
-    
-
-    public List<List<String>> recuperaIndex(){
-        List<List<String>> listaArquivos = new ArrayList<>();
-        try{
-            // Converte o texto plano em uma lista de listas
-            String conteudoIndex = new String(textoPlanoIndice, "UTF-8");
-            
-            String[] linhas = conteudoIndex.split("\n");
-            for (String linha : linhas) {
-                List<String> infoArquivo = Arrays.asList(linha.trim().split("\\s+"));
-                listaArquivos.add(infoArquivo);
-            }
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-
-        for (List<String> file : listaArquivos) {
-            System.out.println(file);
-        }
-        return filtro(listaArquivos);
-    }
-
-    public void recuperaArquivosDocx(String nomeSecreto) throws Exception{
-        // Escreve os dados descriptografados em um novo arquivo com o nome secreto
-        try (FileOutputStream fos = new FileOutputStream(pastaSegura + "/" + nomeSecreto)) {
-            fos.write(textoPlanoDocx);
-        } catch (IOException e) {
-            throw new IOException("Erro ao escrever o arquivo descriptografado.", e);
-        }  
-    }
-
     private List<List<String>> filtro(List<List<String>> listaArquivos) {
         List<List<String>> listaFiltrada = new ArrayList<>();
     
@@ -153,7 +139,6 @@ public class RecuperaArquivo {
             }
         }
         return listaFiltrada; 
-        
     }
 
     private byte[] lerBytes(String caminho) throws IOException {
@@ -166,4 +151,5 @@ public class RecuperaArquivo {
     private boolean arquivoExiste(String nomeArquivo) {
         return new File(pastaSegura + "/" + nomeArquivo).exists();
     }
+
 }
