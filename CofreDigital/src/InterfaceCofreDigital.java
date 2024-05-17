@@ -15,6 +15,7 @@ import java.util.List;
 public class InterfaceCofreDigital {
     private Database database;
     private Autenticacao autenticacao;
+    private RecuperaArquivo recuperaArquivo;
     private JFrame janelaPrincipal;
     private JTextField campoTextoTOTP;
     private JPasswordField campoSenha;
@@ -629,14 +630,19 @@ public class InterfaceCofreDigital {
                         X509Certificate objCertificadoUser = GestorDeSeguranca.generateX509CertificateFromPEM(certificadoUserPem);
                         PublicKey objPublicKeyUser = objCertificadoUser.getPublicKey();
 
-                        RecuperaArquivo recuperaArquivo = new RecuperaArquivo(emailUsuario, grupoUsuario, caminhoPasta.getText(), objPublicKeyAdmin, objPrivateKeyAdmin, objPublicKeyUser, objPrivateKeyUser);
+                        if (grupoUsuario.equals("Usuário")) {
+                            grupoUsuario = "usuario";
+                        }
+                        else{
+                            grupoUsuario = "administrador";
+                        }
+
+                        recuperaArquivo = new RecuperaArquivo(emailUsuario, grupoUsuario, caminhoPasta.getText(), objPublicKeyAdmin, objPrivateKeyAdmin, objPublicKeyUser, objPrivateKeyUser);
                         String resultRecupecacao = recuperaArquivo.verificaArquivos("index");
                         if(resultRecupecacao.equals("OK")){
+                
                             List<List<String>> resultado = recuperaArquivo.recuperaIndex();
-                            System.out.println(resultado.isEmpty());
-                            for (List<String> file : resultado) {
-                                System.out.println(file);
-                            }
+                
                             // Preenche a tabela com os dados retornados
                             model.setRowCount(0); // Limpa linhas antigas
                             for (List<String> rowData : resultado) {
@@ -674,25 +680,32 @@ public class InterfaceCofreDigital {
                 String nomeCodigo = (String) model.getValueAt(selectedRow, 0);
                 String nome = (String) model.getValueAt(selectedRow, 1);
                 String dono = (String) model.getValueAt(selectedRow, 2);
-                String grupo = (String) model.getValueAt(selectedRow, 3);
 
-                int uid = database.getUsuarioIfExists(emailUsuario);
-                HashMap<String, String> u = null;
-                if (uid != -1){
-                    idUsuario = uid;
-                    u = database.getInfoDoUsuario(uid);
-                    if (u != null) {
-                        nomeUsuario = u.get("nome");
-                        grupoUsuario = u.get("grupo");
-                        qtdAcessosUsuario = u.get("numero_de_acessos");
-                        mostrarTelaSenha();
+                try{
+                    if(dono.equals(emailUsuario)){
+                        String resultRecupecacao2 = recuperaArquivo.verificaArquivos(nomeCodigo);
+                        if(resultRecupecacao2.equals("OK")){
+                            recuperaArquivo.recuperaArquivosDocx(nome);
+                            File f = new File(caminhoPasta.getText() + "/" + nome);
+                            if(f.exists() && f.length() > 0){
+                                JOptionPane.showMessageDialog(janelaPrincipal, "Arquivo decriptado com sucesso", "Confirmação", JOptionPane.INFORMATION_MESSAGE);
+
+                            }else{
+                                JOptionPane.showMessageDialog(janelaPrincipal, "Erro ao decriptar o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+                            }
+                        }else{
+                            JOptionPane.showMessageDialog(janelaPrincipal, resultRecupecacao2, "Erro", JOptionPane.ERROR_MESSAGE);
+                        }
                     }
+                    else{
+                        JOptionPane.showMessageDialog(janelaPrincipal, "Somente o dono pode decriptar o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+                    }
+                    
                 }
-
-                // Realiza a ação desejada com o arquivo selecionado
-                System.out.println("Arquivo selecionado: " + nomeCodigo + ", " + nome + ", " + dono + ", " + grupo);
-
-                // Adicione aqui o código para seguir com a rotina do programa usando o arquivo selecionado
+                catch (Exception x){
+                    x.printStackTrace();
+                }
+                
             } else {
                 JOptionPane.showMessageDialog(janelaPrincipal, "Nenhum arquivo selecionado", "Erro", JOptionPane.ERROR_MESSAGE);
             }

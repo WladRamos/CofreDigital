@@ -128,6 +128,10 @@ public class RecuperaArquivo {
         }catch(Exception e){
             e.printStackTrace();
         }
+
+        for (List<String> file : listaArquivos) {
+            System.out.println(file);
+        }
         return filtro(listaArquivos);
     }
 
