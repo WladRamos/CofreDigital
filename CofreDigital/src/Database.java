@@ -1,4 +1,6 @@
 import java.sql.Timestamp;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalTime;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -326,6 +328,9 @@ public class Database {
     }
 
     public HashMap<String, String> getInfoDoUsuario(int uid) {
+        if (uid == -1)
+            return null;
+        
         String sql = "SELECT UID, nome, nome_grupo FROM Usuarios u " +
                      "JOIN Grupos g ON u.grupo_fk = g.GID " +
                      "WHERE u.UID = ?";
@@ -422,6 +427,37 @@ public class Database {
         return countTableEntries("Usuarios");
     }
 
+    public boolean usuarioIsBlocked(int uid) {
+        String sql = "SELECT timestamp FROM Registros" +
+                     "WHERE usuario_fk = ? AND (mensagem_fk = 3007 OR mensagem_fk = 4007)";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.setInt(1, uid);
+            ResultSet resultSet = statement.executeQuery();
+
+            Timestamp latestTimestamp = null;
+            while (resultSet.next()) {
+                Timestamp currentTimestamp = resultSet.getTimestamp("timestamp");
+                if (latestTimestamp == null || currentTimestamp.after(latestTimestamp)) {
+                    latestTimestamp = currentTimestamp;
+                }
+            }
+
+            if (latestTimestamp != null) {
+                Instant now = Instant.now();
+                Instant latestInstant = latestTimestamp.toInstant();
+                Duration duration = Duration.between(latestInstant, now);
+                return duration.toMinutes() < 2;
+            } else {
+                return false; 
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return true;
+        }
+    }
+
     // Métodos auxiliares para manipulações no banco da dados
     
     private int getChaveiroDoUsuarioIfExists(int uid) {
@@ -461,6 +497,22 @@ public class Database {
             return -1;
         }
     }
+
+    private boolean usuarioExists(int uid) {
+        String sql = "SELECT COUNT(*) AS count FROM Usuarios u WHERE u.uid = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setInt(1, uid);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    int count = resultSet.getInt("count");
+                    return count > 0;
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }    
 
    // Métodos públicos para manipulações no banco da dados
 
@@ -525,15 +577,25 @@ public class Database {
             LocalTime horaAtual = LocalTime.now();
             Timestamp timestamp = Timestamp.valueOf(horaAtual.atDate(java.time.LocalDate.now()));
     
-            String sql = "INSERT INTO Registros (mensagem_fk, timestamp, usuario_fk, arquivo_selecionado_decriptacao) VALUES (?, ?, ?, ?)";
-            PreparedStatement statement = connection.prepareStatement(sql);
-            statement.setInt(1, mid);
-            statement.setTimestamp(2, timestamp);
-            statement.setInt(3, uid);
-            statement.setString(4, arquivo);
-            int rowsInserted = statement.executeUpdate();
-            return rowsInserted > 0;
-
+            if (usuarioExists(uid)) {
+                String sql = "INSERT INTO Registros (mensagem_fk, timestamp, usuario_fk, arquivo_selecionado_decriptacao) VALUES (?, ?, ?, ?)";
+                PreparedStatement statement = connection.prepareStatement(sql);
+                statement.setInt(1, mid);
+                statement.setTimestamp(2, timestamp);
+                statement.setInt(3, uid);
+                statement.setString(4, arquivo);
+                int rowsInserted = statement.executeUpdate();
+                return rowsInserted > 0; 
+            } else {
+                String sql = "INSERT INTO Registros (mensagem_fk, timestamp, arquivo_selecionado_decriptacao) VALUES (?, ?, ?)";
+                PreparedStatement statement = connection.prepareStatement(sql);
+                statement.setInt(1, mid);
+                statement.setTimestamp(2, timestamp);
+                statement.setString(3, arquivo);
+                int rowsInserted = statement.executeUpdate();
+                return rowsInserted > 0;
+            }
+            
         } catch (Exception e) {
             e.printStackTrace();
             return false; 

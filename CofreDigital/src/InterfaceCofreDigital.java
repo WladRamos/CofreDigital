@@ -31,6 +31,8 @@ public class InterfaceCofreDigital {
 
     public InterfaceCofreDigital(int status) {
         this.database = Database.getInstance();
+        database.insertIntoRegistros(1001, -1, null);   // Sistema iniciado.
+
         janelaPrincipal = new JFrame("Cofre Digital");
         janelaPrincipal.setSize(500, 200);
         janelaPrincipal.setLayout(new BorderLayout());
@@ -86,6 +88,7 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaNomeLogin() {
+        database.insertIntoRegistros(2001, -1, null);    // Autenticação etapa 1 iniciada.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
 
@@ -124,26 +127,32 @@ public class InterfaceCofreDigital {
         botaoLogin.addActionListener(e -> {
             String campoTextoEmailInput = campoTextoEmail.getText();
             int uid = database.getUsuarioIfExists(campoTextoEmailInput);
-            HashMap<String, String> u = null;
-            if (uid != -1){
-                idUsuario = uid;
-                u = database.getInfoDoUsuario(uid);
-                if (u != null) {
+            HashMap<String, String> u = database.getInfoDoUsuario(uid);
+            if (uid != -1 && u != null) {
+                if (database.usuarioIsBlocked(uid)) {
+                    database.insertIntoRegistros(2004, uid, null);    // Login name <login_name> identificado com acesso bloqueado.
+                } else { 
+                    idUsuario = uid;
                     emailUsuario = campoTextoEmailInput;
                     nomeUsuario = u.get("nome");
                     grupoUsuario = u.get("grupo");
                     qtdAcessosUsuario = u.get("numero_de_acessos");
+                    database.insertIntoRegistros(2003, uid, null);  // Login name <login_name> identificado com acesso liberado.
+                    database.insertIntoRegistros(2002, -1, null);    // Autenticação etapa 1 encerrada.
                     mostrarTelaSenha();
                 }
-            }else{
+            } else {
+                database.insertIntoRegistros(2005, -1, campoTextoEmailInput);  // Login name <login_name> não identificado.
                 JOptionPane.showMessageDialog(janelaPrincipal, "Usuário não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
             }
         });
+
         botaoLimpar.addActionListener(e -> campoTextoEmail.setText(""));
         janelaPrincipal.pack();
     }
 
     private void mostrarTelaSenha() {
+        database.insertIntoRegistros(3001, idUsuario, null);    // Autenticação etapa 2 iniciada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
@@ -177,23 +186,29 @@ public class InterfaceCofreDigital {
             Boolean senhaValidada = autenticacao.verificaSenha(possibilidadesSenha);
             if (senhaValidada) {
                 tentativasErradas = 0;
+                database.insertIntoRegistros(3003, idUsuario, null);    // Senha pessoal verificada positivamente para <login_name>.
+                database.insertIntoRegistros(3002, idUsuario, null);    // Autenticação etapa 2 encerrada para <login_name>.
                 mostrarTelaTOTP();
             } else {
                 tentativasErradas++;
-                JOptionPane.showMessageDialog(janelaPrincipal, "Senha Incorreta.", "Erro", JOptionPane.ERROR_MESSAGE);
-                if (tentativasErradas >= 3) {
-                    database.insertIntoRegistros(3006, idUsuario, null);
+                if (tentativasErradas == 1) {
+                    database.insertIntoRegistros(3004, idUsuario, null);    // Primeiro erro da senha pessoal contabilizado para <login_name>.
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Senha Incorreta (x1).", "Erro", JOptionPane.ERROR_MESSAGE);
+                } else if (tentativasErradas == 2) {
+                    database.insertIntoRegistros(3005, idUsuario, null);    // Segundo erro da senha pessoal contabilizado para <login_name>.
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Senha Incorreta (x2).", "Erro", JOptionPane.ERROR_MESSAGE);
+                } else if (tentativasErradas >= 3) {
+                    database.insertIntoRegistros(3006, idUsuario, null);    // Terceiro erro da senha pessoal contabilizado para <login_name>.
+                    database.insertIntoRegistros(3007, idUsuario, null);    // Acesso do usuario <login_name> bloqueado pela autenticação etapa 2.
                     JOptionPane.showMessageDialog(janelaPrincipal, "Acesso bloqueado por 2 minutos após três tentativas incorretas.", "Bloqueio de Acesso", JOptionPane.ERROR_MESSAGE);
+                    // duvida: database.insertIntoRegistros(3002, idUsuario, null);    // Autenticação etapa 2 encerrada para <login_name>.
                     mostrarTelaNomeLogin();
-
                 }
             }
         });
     
         janelaPrincipal.add(painelTeclas, BorderLayout.CENTER);
         janelaPrincipal.add(painelControle, BorderLayout.SOUTH);
-    
-        
         janelaPrincipal.pack();
         janelaPrincipal.setVisible(true);
     }
@@ -229,6 +244,7 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaTOTP() {
+        database.insertIntoRegistros(4001, idUsuario, null);    // Autenticação etapa 3 iniciada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
@@ -268,13 +284,22 @@ public class InterfaceCofreDigital {
             Boolean TOTPValidado = autenticacao.verificaTOTP(campoTextoTOTP.getText());
             if (TOTPValidado) {
                 tentativasErradas = 0;
+                database.insertIntoRegistros(4003, idUsuario, null);    // Token verificado positivamente para <login_name>.
+                database.insertIntoRegistros(4002, idUsuario, null);    // Autenticação etapa 3 encerrada para <login_name>.
                 mostrarTelaMenu();
             } else {
                 tentativasErradas++;
-                JOptionPane.showMessageDialog(janelaPrincipal, "Código Incorreto.", "Erro", JOptionPane.ERROR_MESSAGE);
-                if (tentativasErradas >= 3) {
-                    database.insertIntoRegistros(4006, idUsuario, null);
+                if (tentativasErradas == 1) {
+                    database.insertIntoRegistros(4004, idUsuario, null);    // Primeiro erro de token contabilizado para <login_name>.
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Código Incorreto (x1).", "Erro", JOptionPane.ERROR_MESSAGE);
+                } else if (tentativasErradas == 2) {
+                    database.insertIntoRegistros(4005, idUsuario, null);    // Segundo erro de token contabilizado para <login_name>.
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Código Incorreto (x2).", "Erro", JOptionPane.ERROR_MESSAGE);
+                } else if (tentativasErradas >= 3) {
+                    database.insertIntoRegistros(4006, idUsuario, null);    // Terceiro erro de token contabilizado para <login_name>.
+                    database.insertIntoRegistros(4007, idUsuario, null);    // Acesso do usuario <login_name> bloqueado pela autenticação etapa 3.
                     JOptionPane.showMessageDialog(janelaPrincipal, "Acesso bloqueado por 2 minutos após três tentativas incorretas.", "Bloqueio de Acesso", JOptionPane.ERROR_MESSAGE);
+                    // duvida: database.insertIntoRegistros(4002, idUsuario, null);    // Autenticação etapa 3 encerrada para <login_name>.
                     mostrarTelaNomeLogin();
                 }
             }
@@ -300,6 +325,7 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaMenu() {
+        database.insertIntoRegistros(5001, idUsuario, null);    // Tela principal apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
 
@@ -318,7 +344,10 @@ public class InterfaceCofreDigital {
         if ("Administrador".equals(grupoUsuario)) {
             JButton botaoCadastrar = new JButton("Cadastrar um novo usuário");
             painelCorpo2.add(botaoCadastrar);
-            botaoCadastrar.addActionListener(e -> mostrarTelaCadastro(1));
+            botaoCadastrar.addActionListener(e -> {
+                database.insertIntoRegistros(5002, idUsuario, null);    // Opção 1 do menu principal selecionada por <login_name>.
+                mostrarTelaCadastro(1);
+            });
         }
         JButton botaoConsultar = new JButton("Consultar pasta de arquivos secretos do usuário");
         JButton botaoSair = new JButton("Sair do Sistema");
@@ -328,8 +357,14 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(painelCorpo2, BorderLayout.SOUTH);
     
         // Definindo ações para os botões
-        botaoConsultar.addActionListener(e -> mostrarTelaConsulta());
-        botaoSair.addActionListener(e -> mostrarTelaSaida());
+        botaoConsultar.addActionListener(e -> {
+            database.insertIntoRegistros(5003, idUsuario, null);    // Opção 2 do menu principal selecionada por <login_name>.
+            mostrarTelaConsulta();
+        });
+        botaoSair.addActionListener(e -> {
+            database.insertIntoRegistros(5004, idUsuario, null);    // Opção 3 do menu principal selecionada por <login_name>.
+            mostrarTelaSaida();
+        });
     
         janelaPrincipal.pack();
         janelaPrincipal.revalidate();
@@ -338,6 +373,8 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaCadastro(int status) {
+        int uidCadastrador = (status == 0) ? -1 : idUsuario;
+        database.insertIntoRegistros(6001, uidCadastrador, null);    // Tela de cadastro apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
 
@@ -403,7 +440,10 @@ public class InterfaceCofreDigital {
         if(status != 0){
             JButton botaoVoltar = new JButton("Voltar");
             painelBotoes.add(botaoVoltar);
-            botaoVoltar.addActionListener(e -> mostrarTelaMenu());
+            botaoVoltar.addActionListener(e -> {
+                database.insertIntoRegistros(6010, uidCadastrador, null);    // Botão voltar de cadastro para o menu principal pressionado por <login_name>.
+                mostrarTelaMenu();
+            });
         }
 
         painelBotoes.add(botaoCadastrar);
@@ -411,6 +451,7 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
 
         botaoCadastrar.addActionListener(e -> {
+            database.insertIntoRegistros(6002, uidCadastrador, null);    // Botão cadastrar pressionado por <login_name>.
             Object grupoSelecionado = comboBoxGrupo.getSelectedItem();
             int codigoGrupo = 0;
             if ("Administrador".equals(grupoSelecionado)) {
@@ -442,6 +483,7 @@ public class InterfaceCofreDigital {
                 JOptionPane.showMessageDialog(janelaPrincipal, msg, "Erro de Validação", JOptionPane.ERROR_MESSAGE);
             }                                       
         });
+
         janelaPrincipal.revalidate();
         janelaPrincipal.repaint();
         janelaPrincipal.pack();
@@ -765,13 +807,18 @@ public class InterfaceCofreDigital {
             idUsuario = 0;
             fraseSecretaAdmin = null;
 
+            database.insertIntoRegistros(1004, idUsuario, null);    // Sessão encerrada para <login_name>.
             // Redireciona para a tela de login
             mostrarTelaNomeLogin();        
         });
-        botaoEncerrarSistema.addActionListener(e -> System.exit(0));
+        botaoEncerrarSistema.addActionListener(e -> {
+            database.insertIntoRegistros(1002, -1, null);   // Sistema encerrado.
+            System.exit(0);  
+        });
         botaoVoltar.addActionListener(e -> mostrarTelaMenu());
     
         janelaPrincipal.pack();
         janelaPrincipal.setVisible(true);
     }
+
 }
