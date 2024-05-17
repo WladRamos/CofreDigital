@@ -201,7 +201,7 @@ public class InterfaceCofreDigital {
                     database.insertIntoRegistros(3006, idUsuario, null);    // Terceiro erro da senha pessoal contabilizado para <login_name>.
                     database.insertIntoRegistros(3007, idUsuario, null);    // Acesso do usuario <login_name> bloqueado pela autenticação etapa 2.
                     JOptionPane.showMessageDialog(janelaPrincipal, "Acesso bloqueado por 2 minutos após três tentativas incorretas.", "Bloqueio de Acesso", JOptionPane.ERROR_MESSAGE);
-                    // duvida: database.insertIntoRegistros(3002, idUsuario, null);    // Autenticação etapa 2 encerrada para <login_name>.
+                    database.insertIntoRegistros(3002, idUsuario, null);    // Autenticação etapa 2 encerrada para <login_name>.
                     mostrarTelaNomeLogin();
                 }
             }
@@ -299,7 +299,7 @@ public class InterfaceCofreDigital {
                     database.insertIntoRegistros(4006, idUsuario, null);    // Terceiro erro de token contabilizado para <login_name>.
                     database.insertIntoRegistros(4007, idUsuario, null);    // Acesso do usuario <login_name> bloqueado pela autenticação etapa 3.
                     JOptionPane.showMessageDialog(janelaPrincipal, "Acesso bloqueado por 2 minutos após três tentativas incorretas.", "Bloqueio de Acesso", JOptionPane.ERROR_MESSAGE);
-                    // duvida: database.insertIntoRegistros(4002, idUsuario, null);    // Autenticação etapa 3 encerrada para <login_name>.
+                    database.insertIntoRegistros(4002, idUsuario, null);    // Autenticação etapa 3 encerrada para <login_name>.
                     mostrarTelaNomeLogin();
                 }
             }
@@ -325,6 +325,7 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaMenu() {
+        database.insertIntoRegistros(1003, idUsuario, null);    // Sessão iniciada para <login_name>.
         database.insertIntoRegistros(5001, idUsuario, null);    // Tela principal apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
@@ -510,6 +511,7 @@ public class InterfaceCofreDigital {
         botaoCadastrar.addActionListener(e -> {
             char[] senha = campoSenha.getPassword();
             if (!validarSenhaCadastro(senha)) {
+                database.insertIntoRegistros(6003, idUsuario, null);    // Senha pessoal inválida fornecida por <login_name>.
                 JOptionPane.showMessageDialog(janelaPrincipal, "A senha deve ter de 8 a 10 dígitos.\nA senha não pode conter sequências de números repetidos.\nA senha deve ser formada apenas por digitos de 0 a 9.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                 return;
             }
