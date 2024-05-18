@@ -1,3 +1,10 @@
+/*  
+INF1416 - Segurança da Informação - 2024.1 - 3WA
+T4: Cofre Digital - Prof.: Anderson Oliveira da Silva
+Nome: Marina Schuler Martins Matrícula: 2110075
+Nome: Wladimir Calazam de Araujo Goes Ramos Matrícula: 2110104
+*/
+
 import javax.crypto.SecretKey;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -51,42 +58,48 @@ public class InterfaceCofreDigital {
         janelaPrincipal.setLayout(new BorderLayout());
     
         // Criação de um painel intermediário para o cabeçalho e campo de frase secreta
-        JPanel painelSuperior = new JPanel(new BorderLayout());    
+        JPanel painelSuperior = new JPanel(new BorderLayout());
         JLabel rotuloCabecalho = new JLabel("Cofre Digital - Autenticação", JLabel.CENTER);
+        rotuloCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
         painelSuperior.add(rotuloCabecalho, BorderLayout.NORTH);
     
-        JPanel painelFraseSecreta = new JPanel(); // Usar FlowLayout por padrão, ou escolher outro se necessário
+        JPanel painelFraseSecreta = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5)); // Centraliza os componentes com menos margens
+        JLabel labelFraseSecreta = new JLabel("Frase Secreta do Administrador:");
         JTextField campoFraseSecretaAdmin = new JTextField(20);
-        painelFraseSecreta.add(new JLabel("Frase Secreta do Administrador:"));
+        painelFraseSecreta.add(labelFraseSecreta);
         painelFraseSecreta.add(campoFraseSecretaAdmin);
+        painelFraseSecreta.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         painelSuperior.add(painelFraseSecreta, BorderLayout.CENTER);
     
-        // Adiciona o painel superior ao BorderLayout.NORTH da janela principal
-        janelaPrincipal.add(painelSuperior, BorderLayout.NORTH);
-
-        JPanel painelBotoes = new JPanel(new FlowLayout());
-
+        // Adiciona o painel superior ao BorderLayout.CENTER da janela principal
+        janelaPrincipal.add(painelSuperior, BorderLayout.CENTER);
+    
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JButton btnConfirma = new JButton("Confirmar");
         painelBotoes.add(btnConfirma);
+        painelBotoes.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
-
-        btnConfirma.addActionListener(e ->{
+    
+        btnConfirma.addActionListener(e -> {
             String textoCampoFraseSecretaAdmin = campoFraseSecretaAdmin.getText();
             idAdministrador = database.getUsuarioIfExists(emailAdmin);
-            byte[] chavePrivCript =  database.getChavePrivadaCriptografadaDoUsuario(idAdministrador);
+            byte[] chavePrivCript = database.getChavePrivadaCriptografadaDoUsuario(idAdministrador);
             PrivateKey objPrivateKey = GestorDeSeguranca.generatePrivateKeyFromBIN(chavePrivCript, textoCampoFraseSecretaAdmin);
-            if(objPrivateKey != null){
+            if (objPrivateKey != null) {
                 fraseSecretaAdmin = textoCampoFraseSecretaAdmin;
                 mostrarTelaNomeLogin();
-            }
-            else{
+            } else {
                 JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do administrador incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
             }
         });
-
-        janelaPrincipal.pack();
+    
+        // Definindo um tamanho fixo para a janela
+        janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
+        janelaPrincipal.setMinimumSize(new Dimension(400, 220)); // Define o tamanho mínimo da janela
+        janelaPrincipal.setPreferredSize(new Dimension(400, 220)); // Define o tamanho preferido da janela
+        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
-    }
+    }   
 
     private void mostrarTelaNomeLogin() {
         database.insertIntoRegistros(2001, -1, null);    // Autenticação etapa 1 iniciada.
@@ -150,7 +163,9 @@ public class InterfaceCofreDigital {
         });
 
         botaoLimpar.addActionListener(e -> campoTextoEmail.setText(""));
-        janelaPrincipal.pack();
+        // Definindo um tamanho fixo para a janela
+        janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
+        janelaPrincipal.setLocationRelativeTo(null);
     }
 
     private void mostrarTelaSenha() {
@@ -160,31 +175,38 @@ public class InterfaceCofreDigital {
         janelaPrincipal.setLayout(new BorderLayout());
     
         JLabel rotuloCabecalho = new JLabel("Cofre Digital - Autenticação", JLabel.CENTER);
+        rotuloCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
         janelaPrincipal.add(rotuloCabecalho, BorderLayout.NORTH);
     
-        JPanel painelSenha = new JPanel();
+        JPanel painelSenha = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
+        JLabel labelSenha = new JLabel("Senha pessoal:");
         campoSenha = new JPasswordField(20);
-        campoSenha.setEditable(true);
-        painelSenha.add(new JLabel("Senha pessoal:"));
+        campoSenha.setEditable(false);
+        painelSenha.add(labelSenha);
         painelSenha.add(campoSenha);
+        painelSenha.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         janelaPrincipal.add(painelSenha, BorderLayout.NORTH);
     
-        painelTeclas = new JPanel(new GridLayout(2, 5));
+        painelTeclas = new JPanel(new GridLayout(2, 5, 10, 10));
         redistribuirNumeros();
+        painelTeclas.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        janelaPrincipal.add(painelTeclas, BorderLayout.CENTER);
     
-        JPanel painelControle = new JPanel(new FlowLayout());
+        JPanel painelControle = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         botaoOK = new JButton("OK");
         botaoOK.setEnabled(false);
         JButton botaoLimpar = new JButton("LIMPAR");
         painelControle.add(botaoOK);
         painelControle.add(botaoLimpar);
+        painelControle.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        janelaPrincipal.add(painelControle, BorderLayout.SOUTH);
     
         botaoLimpar.addActionListener(e -> {
             possibilidadesSenha.clear();
             campoSenha.setText("");
             botaoOK.setEnabled(false);
         });
-
+    
         botaoOK.addActionListener(e -> {
             autenticacao = new Autenticacao(idUsuario);
             Boolean senhaValidada = autenticacao.verificaSenha(possibilidadesSenha);
@@ -211,11 +233,13 @@ public class InterfaceCofreDigital {
             }
         });
     
-        janelaPrincipal.add(painelTeclas, BorderLayout.CENTER);
-        janelaPrincipal.add(painelControle, BorderLayout.SOUTH);
-        janelaPrincipal.pack();
+        janelaPrincipal.setSize(400, 300); // ajuste os valores conforme necessário
+        janelaPrincipal.setMinimumSize(new Dimension(400, 300)); // Define o tamanho mínimo da janela
+        janelaPrincipal.setPreferredSize(new Dimension(400, 300)); // Define o tamanho preferido da janela
+        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }
+    
     
     private void validarComprimentoSenha() {
         int comprimento = campoSenha.getPassword().length;
@@ -253,18 +277,26 @@ public class InterfaceCofreDigital {
         janelaPrincipal.setLayout(new BorderLayout());
     
         JLabel rotuloCabecalho = new JLabel("Cofre Digital - Autenticação", JLabel.CENTER);
+        rotuloCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
         janelaPrincipal.add(rotuloCabecalho, BorderLayout.NORTH);
-
-        JPanel painelTOTP = new JPanel(new FlowLayout());
+    
+        JPanel painelTOTP = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JLabel rotuloTOTP = new JLabel("TOTP:");
         campoTextoTOTP = new JTextField(20);
-    
         painelTOTP.add(rotuloTOTP);
         painelTOTP.add(campoTextoTOTP);
-
-        JPanel painelBotoes = new JPanel(new FlowLayout());
+        painelTOTP.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        janelaPrincipal.add(painelTOTP, BorderLayout.CENTER);
+    
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JButton botaoOkTOTP = new JButton("OK");
-
+        JButton botaoLimpar = new JButton("LIMPAR");
+        painelBotoes.add(botaoOkTOTP);
+        painelBotoes.add(botaoLimpar);
+        painelBotoes.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
+        botaoOkTOTP.setEnabled(false);
+    
         campoTextoTOTP.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -272,18 +304,12 @@ public class InterfaceCofreDigital {
             }
         });
 
-        JButton botaoLimpar = new JButton("LIMPAR");
-        painelBotoes.add(botaoOkTOTP);
-        painelBotoes.add(botaoLimpar);
-        botaoOkTOTP.setEnabled(false);
-
-        janelaPrincipal.add(painelTOTP, BorderLayout.CENTER);
-        janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
-        janelaPrincipal.setVisible(true);
-
         String inputTOTPvalido = getValidTOTP();
         System.out.println("valid TOTP: " + inputTOTPvalido);
 
+
+        botaoLimpar.addActionListener(e -> campoTextoTOTP.setText(""));
+    
         botaoOkTOTP.addActionListener(e -> {
             Boolean TOTPValidado = autenticacao.verificaTOTP(campoTextoTOTP.getText());
             if (TOTPValidado) {
@@ -309,8 +335,15 @@ public class InterfaceCofreDigital {
                 }
             }
         });
-        botaoLimpar.addActionListener(e -> campoTextoTOTP.setText(""));
+    
+        janelaPrincipal.pack();
+        janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
+        janelaPrincipal.setMinimumSize(new Dimension(400, 220)); // Define o tamanho mínimo da janela
+        janelaPrincipal.setPreferredSize(new Dimension(400, 220)); // Define o tamanho preferido da janela
+        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
+        janelaPrincipal.setVisible(true);
     }
+    
 
     private String getValidTOTP() {
         try {
@@ -333,19 +366,25 @@ public class InterfaceCofreDigital {
         database.insertIntoRegistros(5001, idUsuario, null);    // Tela principal apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
-
+    
+        // Painel de cabeçalho
         JPanel painelCabecalho = new JPanel(new GridLayout(3, 1));
         painelCabecalho.add(new JLabel("Login: " + emailUsuario, JLabel.CENTER));
         painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
         painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
+        painelCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
         janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
     
-        JPanel painelCorpo1 = new JPanel(new FlowLayout());
+        // Painel de corpo 1
+        JPanel painelCorpo1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         painelCorpo1.add(new JLabel("Total de acessos do usuário: " + qtdAcessosUsuario));
+        painelCorpo1.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         janelaPrincipal.add(painelCorpo1, BorderLayout.CENTER);
     
-        JPanel painelCorpo2 = new JPanel(new GridLayout(3, 1));
-
+        // Painel de corpo 2
+        JPanel painelCorpo2 = new JPanel(new GridLayout(3, 1, 10, 10));
+        painelCorpo2.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        
         if ("Administrador".equals(grupoUsuario)) {
             JButton botaoCadastrar = new JButton("Cadastrar um novo usuário");
             painelCorpo2.add(botaoCadastrar);
@@ -354,6 +393,7 @@ public class InterfaceCofreDigital {
                 mostrarTelaCadastro(1);
             });
         }
+    
         JButton botaoConsultar = new JButton("Consultar pasta de arquivos secretos do usuário");
         JButton botaoSair = new JButton("Sair do Sistema");
     
@@ -371,40 +411,45 @@ public class InterfaceCofreDigital {
             mostrarTelaSaida();
         });
     
-        janelaPrincipal.pack();
-        janelaPrincipal.revalidate();
-        janelaPrincipal.repaint();
+        janelaPrincipal.setSize(400, 300); // ajuste os valores conforme necessário
+        janelaPrincipal.setMinimumSize(new Dimension(400, 300)); // Define o tamanho mínimo da janela
+        janelaPrincipal.setPreferredSize(new Dimension(400, 300)); // Define o tamanho preferido da janela
+        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }
+    
 
     private void mostrarTelaCadastro(int status) {
         database.insertIntoRegistros(6001, idUsuario, null);    // Tela de cadastro apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
-
+    
         // Define o título da tela baseado no status
         String tituloTela = (status == 0) ? "Cadastro do administrador" : "Novo cadastro";
         JLabel labelTituloTela = new JLabel(tituloTela, JLabel.CENTER);
+        labelTituloTela.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
         janelaPrincipal.add(labelTituloTela, BorderLayout.NORTH);
     
-        if(status != 0){
+        if (status != 0) {
             JPanel painelCabecalho = new JPanel(new GridLayout(3, 1));
             painelCabecalho.add(new JLabel("Login: " + emailUsuario, JLabel.CENTER));
             painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
             painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
+            painelCabecalho.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
             janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
         } else {
             janelaPrincipal.add(labelTituloTela, BorderLayout.NORTH);
         }
-        
+    
         Box verticalBox = Box.createVerticalBox();
-        JPanel painelCorpo1 = new JPanel(new FlowLayout());
+        JPanel painelCorpo1 = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         Database banco = Database.getInstance();
         int nUsuarios = banco.countUsuariosNoSistema();
         painelCorpo1.add(new JLabel("Total de usuários do sistema: " + nUsuarios));
         verticalBox.add(painelCorpo1);
     
-        JPanel painelCorpo2 = new JPanel(new GridLayout(6, 2, 5, 5)); 
+        JPanel painelCorpo2 = new JPanel(new GridLayout(6, 2, 10, 10));
+        painelCorpo2.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         painelCorpo2.add(new JLabel("Caminho do arquivo do certificado digital:"));
         JTextField campoCertificado = new JTextField(255);
         painelCorpo2.add(campoCertificado);
@@ -419,7 +464,7 @@ public class InterfaceCofreDigital {
     
         painelCorpo2.add(new JLabel("Grupo:"));
         JComboBox<String> comboBoxGrupo;
-
+    
         if (status == 0) {
             comboBoxGrupo = new JComboBox<>(new String[]{"Administrador"});
         } else {
@@ -434,14 +479,15 @@ public class InterfaceCofreDigital {
         painelCorpo2.add(new JLabel("Confirmação da senha pessoal:"));
         JPasswordField campoConfirmacaoSenha = new JPasswordField(10);
         painelCorpo2.add(campoConfirmacaoSenha);
-
+    
         verticalBox.add(painelCorpo2);
         janelaPrincipal.add(verticalBox, BorderLayout.CENTER);
     
-        JPanel painelBotoes = new JPanel(new FlowLayout());
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JButton botaoCadastrar = new JButton("Cadastrar");
         tratamentosBotaoCadastrar(botaoCadastrar, campoSenha);
-        if(status != 0){
+    
+        if (status != 0) {
             JButton botaoVoltar = new JButton("Voltar");
             painelBotoes.add(botaoVoltar);
             botaoVoltar.addActionListener(e -> {
@@ -449,11 +495,11 @@ public class InterfaceCofreDigital {
                 mostrarTelaMenu();
             });
         }
-
-        painelBotoes.add(botaoCadastrar);
     
+        painelBotoes.add(botaoCadastrar);
+        painelBotoes.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
-
+    
         botaoCadastrar.addActionListener(e -> {
             database.insertIntoRegistros(6002, idUsuario, null);    // Botão cadastrar pressionado por <login_name>.
             Object grupoSelecionado = comboBoxGrupo.getSelectedItem();
@@ -463,21 +509,26 @@ public class InterfaceCofreDigital {
             } else if ("Usuário".equals(grupoSelecionado)) {
                 codigoGrupo = 2;
             }
-
+    
             Cadastro cadastro = new Cadastro(
                 campoCertificado.getText(), 
                 campoChavePrivada.getText(), 
                 campoFraseSecreta.getText(), 
                 codigoGrupo, 
-                new String (campoSenha.getPassword()), 
-                new String (campoConfirmacaoSenha.getPassword())
+                new String(campoSenha.getPassword()), 
+                new String(campoConfirmacaoSenha.getPassword())
             );
-
+    
             String msg = cadastro.verificaEntradasDoCadastro();
             if (msg.equals("Entradas verificadas")) {
                 try {
-                    HashMap<String,String> info = cadastro.getDetalhesDoCertificadoDigital();
-                    mostrarPopUpConfirmacao(cadastro, info, status);
+                    HashMap<String, String> info = cadastro.getDetalhesDoCertificadoDigital();
+                    boolean loginNameLivre = (database.getUsuarioIfExists(info.get("email")) == -1);
+                    if (loginNameLivre) {
+                        mostrarPopUpConfirmacao(cadastro, info, status);
+                    } else {
+                        JOptionPane.showMessageDialog(janelaPrincipal, "O email presente no certificado digital fornecido já pertence a um usuário cadastrado.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+                    }
                 } catch (Exception x) {
                     JOptionPane.showMessageDialog(janelaPrincipal, "Falha ao extrair as informações do certificado digital.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                     x.printStackTrace();
@@ -497,12 +548,13 @@ public class InterfaceCofreDigital {
                 JOptionPane.showMessageDialog(janelaPrincipal, msg, "Erro de Validação", JOptionPane.ERROR_MESSAGE);
             }                                       
         });
-
-        janelaPrincipal.revalidate();
-        janelaPrincipal.repaint();
-        janelaPrincipal.pack();
+    
+        janelaPrincipal.setSize(540, 500); // ajuste os valores conforme necessário
+        janelaPrincipal.setMinimumSize(new Dimension(540, 500)); // Define o tamanho mínimo da janela
+        janelaPrincipal.setPreferredSize(new Dimension(540, 500)); // Define o tamanho preferido da janela
+        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
-    }
+    }    
 
     private boolean validarSenhaCadastro(char[] senha) {
         String senhaStr = new String(senha);
@@ -531,23 +583,28 @@ public class InterfaceCofreDigital {
         });
     }
 
-    private void mostrarPopUpConfirmacao(Cadastro cadastro, HashMap<String,String> info, int statusTipoCadastro) {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 300);
-
+    private void mostrarPopUpConfirmacao(Cadastro cadastro, HashMap<String, String> info, int statusTipoCadastro) {
+        JFrame frame = new JFrame("Confirmação de Cadastro");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Permite que a janela pop-up seja fechada sem encerrar o programa
+    
         // Criar o JPanel que conterá todos os componentes
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        panel.add(new JLabel("Versão: " + info.get("versao")));
-        panel.add(new JLabel("Série: " + info.get("serie")));
-        panel.add(new JLabel("Validade: " + info.get("validade")));
-        panel.add(new JLabel("Tipo de Assinatura: " + info.get("tipo_assinatura")));
-        panel.add(new JLabel("Emissor: " + info.get("emissor")));
-        panel.add(new JLabel("Sujeito: " + info.get("sujeito")));
-        panel.add(new JLabel("Email: " + info.get("email")));
-
+        JPanel panel = new JPanel(new BorderLayout());
+    
+        // Criar um JPanel intermediário para alinhar à esquerda
+        JPanel leftAlignedPanel = new JPanel();
+        leftAlignedPanel.setLayout(new BoxLayout(leftAlignedPanel, BoxLayout.Y_AXIS));
+        leftAlignedPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    
+        leftAlignedPanel.add(new JLabel("Versão: " + info.get("versao")));
+        leftAlignedPanel.add(new JLabel("Série: " + info.get("serie")));
+        leftAlignedPanel.add(new JLabel("Validade: " + info.get("validade")));
+        leftAlignedPanel.add(new JLabel("Tipo de Assinatura: " + info.get("tipo_assinatura")));
+        leftAlignedPanel.add(new JLabel("Emissor: " + info.get("emissor")));
+        leftAlignedPanel.add(new JLabel("Sujeito: " + info.get("sujeito")));
+        leftAlignedPanel.add(new JLabel("Email: " + info.get("email")));
+    
+        panel.add(leftAlignedPanel, BorderLayout.CENTER);
+    
         // Criar os botões
         JButton confirmButton = new JButton("Confirmar");
         confirmButton.addActionListener(e -> {
@@ -555,64 +612,76 @@ public class InterfaceCofreDigital {
             String codigoTOTP = cadastro.cadastraUsuario();
             BufferedImage QRcode = GestorDeSeguranca.generateQRcodeDaChaveSecreta(codigoTOTP, info.get("email"));
             mostrarPopUpCodigoTOTP(codigoTOTP, QRcode, statusTipoCadastro);
+            frame.dispose(); // Fecha a janela pop-up
         });
-
+    
         JButton cancelButton = new JButton("Cancelar");
         cancelButton.addActionListener(e -> {
             database.insertIntoRegistros(6009, idUsuario, null);    // Confirmação de dados rejeitada por <login_name>.
-            frame.dispose();
+            frame.dispose(); // Fecha a janela pop-up
         });
-
+    
         // Adicionar botões ao painel
-        JPanel buttonPanel = new JPanel();
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.add(confirmButton);
         buttonPanel.add(cancelButton);
-        panel.add(buttonPanel);
-
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+    
         // Adicionar o painel ao frame
         frame.add(panel);
-        frame.pack();
+        frame.setSize(650, 200); // Define o tamanho fixo
+        frame.setLocationRelativeTo(null); // Centraliza a janela na tela
         frame.setVisible(true);
-    }
+    }        
 
     private void mostrarPopUpCodigoTOTP(String codigoTOTP, BufferedImage QRcode, int statusTipoCadastro) {
-        JFrame frame = new JFrame();
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 300);
-
+        JFrame frame = new JFrame("Código TOTP");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Permite que a janela pop-up seja fechada sem encerrar o programa
+    
         // Criar o JPanel que conterá todos os componentes
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-
-        panel.add(new JLabel("Insira o código a seguir como chave de configuração no seu google Authenticator: "));
-        panel.add(new JLabel(""));
-        panel.add(new JLabel(codigoTOTP));
-        panel.add(new JLabel(""));
-        panel.add(new JLabel("Ou utilize a opção Ler QR code: "));
-        panel.add(new JLabel(""));
-        panel.add(new JLabel(new ImageIcon(QRcode)));
-        panel.add(new JLabel(""));
-
-        // Criar os botões
+        JPanel panel = new JPanel(new BorderLayout());
+    
+        // Criar um JPanel intermediário para alinhar os textos à esquerda
+        JPanel textPanel = new JPanel();
+        textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
+        textPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
+    
+        textPanel.add(new JLabel("Insira o código a seguir como chave de configuração no seu Google Authenticator: "));
+        textPanel.add(Box.createVerticalStrut(10)); // Adicionar espaço vertical
+        textPanel.add(new JLabel(codigoTOTP));
+        textPanel.add(Box.createVerticalStrut(10)); // Adicionar espaço vertical
+        textPanel.add(new JLabel("Ou utilize a opção Ler QR code: "));
+        textPanel.add(Box.createVerticalStrut(10)); // Adicionar espaço vertical
+    
+        panel.add(textPanel, BorderLayout.NORTH);
+    
+        // Adicionar a imagem do QR code centralizada
+        JLabel qrCodeLabel = new JLabel(new ImageIcon(QRcode));
+        qrCodeLabel.setHorizontalAlignment(JLabel.CENTER);
+        panel.add(qrCodeLabel, BorderLayout.CENTER);
+    
+        // Criar o botão
         JButton confirmButton = new JButton("Confirmar");
         confirmButton.addActionListener(e -> {
-            if(statusTipoCadastro == 0){
-                mostrarTelaNomeLogin();
-            }else{
+            if (statusTipoCadastro == 0) {
+                mostrarTelaFraseSecretaAdmin();
+            } else {
                 mostrarTelaCadastro(statusTipoCadastro);
             }
+            frame.dispose(); // Fecha a janela pop-up
         });
-
-        // Adicionar botões ao painel
+    
+        // Adicionar o botão centralizado
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(confirmButton);
-        panel.add(buttonPanel);
-
+        panel.add(buttonPanel, BorderLayout.SOUTH);
+    
         // Adicionar o painel ao frame
         frame.add(panel);
-        frame.pack();
+        frame.setSize(500, 400); // Define o tamanho fixo
+        frame.setLocationRelativeTo(null); // Centraliza a janela na tela
         frame.setVisible(true);
-    }
+    }    
 
     private void mostrarTelaConsulta() {
         database.insertIntoRegistros(7001, idUsuario, null);   // Tela de consulta de arquivos secretos apresentada para <login_name>.
@@ -623,30 +692,32 @@ public class InterfaceCofreDigital {
         painelCabecalho.add(new JLabel("Login: " + emailUsuario, JLabel.CENTER));
         painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
         painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
+        painelCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
     
         Box verticalBox = Box.createVerticalBox();
-
-        JPanel painelCorpo2 = new JPanel(new GridLayout(6, 2, 5, 5));
+    
+        JPanel painelCorpo2 = new JPanel(new GridLayout(4, 2, 10, 10));
+        painelCorpo2.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         painelCorpo2.add(new JLabel("Caminho da Pasta Segura:"));
         JTextField caminhoPasta = new JTextField(255);
         painelCorpo2.add(caminhoPasta);
-
+    
         painelCorpo2.add(new JLabel("Frase secreta:"));
         JTextField fraseSecretaUsuario = new JTextField(255);
         painelCorpo2.add(fraseSecretaUsuario);
-
+    
+        painelCorpo2.add(new JLabel(""));
         JButton btnListar = new JButton("Listar");
-        painelCorpo2.add(new JLabel(""));
         painelCorpo2.add(btnListar);
-
-        JButton btnVoltar = new JButton("Voltar");
+    
         painelCorpo2.add(new JLabel(""));
+        JButton btnVoltar = new JButton("Voltar");
         painelCorpo2.add(btnVoltar);
-
+    
         verticalBox.add(painelCorpo2);
         janelaPrincipal.add(verticalBox, BorderLayout.CENTER);
-
+    
         // Configuração da tabela
         DefaultTableModel model = new DefaultTableModel(null, new String[]{"Nome Código", "Nome", "Dono", "Grupo"}) {
             @Override
@@ -656,30 +727,32 @@ public class InterfaceCofreDigital {
         };
         JTable tabelaArquivos = new JTable(model);
         JScrollPane scrollPane = new JScrollPane(tabelaArquivos);
-        scrollPane.setPreferredSize(new Dimension(600, 100));
-
+        scrollPane.setPreferredSize(new Dimension(600, 200));
+    
         // Painel para a tabela e o botão "Selecionar"
-        JPanel painelTabelaEBotoes = new JPanel();
-        painelTabelaEBotoes.setLayout(new BorderLayout());
+        JPanel painelTabelaEBotoes = new JPanel(new BorderLayout());
         painelTabelaEBotoes.add(scrollPane, BorderLayout.CENTER);
-
+    
         // Painel para o botão "Selecionar"
-        JPanel painelBotoes = new JPanel();
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton btnSelecionar = new JButton("Selecionar");
         btnSelecionar.setEnabled(false); // Inicialmente desabilitado
         painelBotoes.add(btnSelecionar);
         painelTabelaEBotoes.add(painelBotoes, BorderLayout.SOUTH);
-
+    
         janelaPrincipal.add(painelTabelaEBotoes, BorderLayout.SOUTH);
-
-        janelaPrincipal.pack();
+    
+        janelaPrincipal.setSize(800, 600); // Define o tamanho fixo da janela
+        janelaPrincipal.setMinimumSize(new Dimension(800, 600)); // Define o tamanho mínimo da janela
+        janelaPrincipal.setPreferredSize(new Dimension(800, 600)); // Define o tamanho preferido da janela
+        janelaPrincipal.setLocationRelativeTo(null); // Centraliza a janela na tela
         janelaPrincipal.setVisible(true);
-
+    
         btnVoltar.addActionListener(e -> {
             database.insertIntoRegistros(7002, idUsuario, null);   // Botão voltar de consulta para o menu principal pressionado por <login_name>.
             mostrarTelaMenu();
         });
-
+    
         btnListar.addActionListener(e -> {
             database.insertIntoRegistros(7003, idUsuario, null);   // Botão Listar de consulta pressionado por <login_name>.
             try {
@@ -689,20 +762,20 @@ public class InterfaceCofreDigital {
                     String certificadoAdminPem = database.getCertificadoDigitalDoUsuario(idAdministrador);
                     X509Certificate objCertificadoAdmin = GestorDeSeguranca.generateX509CertificateFromPEM(certificadoAdminPem);
                     PublicKey objPublicKeyAdmin = objCertificadoAdmin.getPublicKey();
-
+    
                     byte[] chaveSecredaUserCript = database.getChavePrivadaCriptografadaDoUsuario(idUsuario);
                     PrivateKey objPrivateKeyUser = GestorDeSeguranca.generatePrivateKeyFromBIN(chaveSecredaUserCript, fraseSecretaUsuario.getText());
                     if (objPrivateKeyUser != null) {
                         String certificadoUserPem = database.getCertificadoDigitalDoUsuario(idUsuario);
                         X509Certificate objCertificadoUser = GestorDeSeguranca.generateX509CertificateFromPEM(certificadoUserPem);
                         PublicKey objPublicKeyUser = objCertificadoUser.getPublicKey();
-
+    
                         if (grupoUsuario.equals("Usuário")) {
                             grupoUsuario = "usuario";
                         } else {
                             grupoUsuario = "administrador";
                         }
-
+    
                         recuperaArquivo = new RecuperaArquivo(emailUsuario, grupoUsuario, caminhoPasta.getText(), objPublicKeyAdmin, objPrivateKeyAdmin, objPublicKeyUser, objPrivateKeyUser);
                         String resultRecupecacao = recuperaArquivo.verificaArquivos("index");
                         if (resultRecupecacao.equals("OK")) {
@@ -710,13 +783,13 @@ public class InterfaceCofreDigital {
                             database.insertIntoRegistros(7006, idUsuario, null);   // Arquivo de índice verificado (integridade e autenticidade) com sucesso para <login_name>.
                                 
                             List<List<String>> resultado = recuperaArquivo.recuperaIndex();
-
+    
                             // Preenche a tabela com os dados retornados
                             model.setRowCount(0); // Limpa linhas antigas
                             for (List<String> rowData : resultado) {
                                 model.addRow(rowData.toArray());
                             }
-
+    
                             database.insertIntoRegistros(7009, idUsuario, null);   // Lista de arquivos presentes no índice apresentada para <login_name>.
                             tabelaArquivos.revalidate();
                             tabelaArquivos.repaint();
@@ -737,15 +810,14 @@ public class InterfaceCofreDigital {
                     } else {
                         JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do usuário incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
                     }
-                }
-                else {
+                } else {
                     JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do administrador incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
         });
-
+    
         // Adiciona um ListSelectionListener para rastrear a linha selecionada
         tabelaArquivos.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
@@ -753,7 +825,7 @@ public class InterfaceCofreDigital {
                 btnSelecionar.setEnabled(selectedRow != -1); // Habilita o botão se uma linha estiver selecionada
             }
         });
-
+    
         // Adiciona um ActionListener ao botão "Selecionar"
         btnSelecionar.addActionListener(e -> {
             int selectedRow = tabelaArquivos.getSelectedRow();
@@ -761,9 +833,9 @@ public class InterfaceCofreDigital {
                 String nomeCodigo = (String) model.getValueAt(selectedRow, 0);
                 String nome = (String) model.getValueAt(selectedRow, 1);
                 String dono = (String) model.getValueAt(selectedRow, 2);
-
+    
                 database.insertIntoRegistros(7010, idUsuario, nome);    // Arquivo <arq_name> selecionado por <login_name> para decriptação.
-
+    
                 try {
                     if (dono.equals(emailUsuario)) {
                         database.insertIntoRegistros(7011, idUsuario, nome);    // Acesso permitido ao arquivo <arq_name> para <login_name>.
@@ -804,32 +876,49 @@ public class InterfaceCofreDigital {
                 JOptionPane.showMessageDialog(janelaPrincipal, "Nenhum arquivo selecionado", "Erro", JOptionPane.ERROR_MESSAGE);
             }
         });
-    }
+    }    
 
     private void mostrarTelaSaida() {
         database.insertIntoRegistros(8001, idUsuario, null);    // Tela de saída apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
-        // Cabeçalho
+        // Cabeçalho centralizado
         JPanel painelCabecalho = new JPanel(new GridLayout(3, 1));
         painelCabecalho.add(new JLabel("Login: " + emailUsuario, JLabel.CENTER));
         painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
         painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
+        painelCabecalho.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
     
+        // Corpo principal
+        JPanel painelCorpoPrincipal = new JPanel();
+        painelCorpoPrincipal.setLayout(new BoxLayout(painelCorpoPrincipal, BoxLayout.Y_AXIS));
+    
         // Corpo1
-        JPanel painelCorpo1 = new JPanel(new FlowLayout());
+        JPanel painelCorpo1 = new JPanel();
+        painelCorpo1.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
         painelCorpo1.add(new JLabel("Total de acessos do usuário: " + qtdAcessosUsuario));
-        janelaPrincipal.add(painelCorpo1, BorderLayout.CENTER);
+        painelCorpo1.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelCorpoPrincipal.add(painelCorpo1);
     
         // Corpo2
-        JPanel painelCorpo2 = new JPanel(new GridLayout(2, 1));
-        painelCorpo2.add(new JLabel("Saída do sistema:"));
-        painelCorpo2.add(new JLabel("Pressione o botão Encerrar Sessão ou o botão Encerrar Sistema para confirmar.", JLabel.CENTER));
+        JPanel painelCorpo2 = new JPanel();
+        painelCorpo2.setLayout(new BoxLayout(painelCorpo2, BoxLayout.Y_AXIS));
+        JLabel labelSaida = new JLabel("Saída do sistema:");
+        labelSaida.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JLabel labelInstrucoes = new JLabel("Pressione o botão Encerrar Sessão ou o botão Encerrar Sistema para confirmar.", JLabel.LEFT);
+        labelInstrucoes.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelCorpo2.add(labelSaida);
+        painelCorpo2.add(labelInstrucoes);
+        painelCorpo2.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelCorpoPrincipal.add(painelCorpo2);
     
-        // Painel de botões
-        JPanel painelBotoes = new JPanel(new FlowLayout());
+        janelaPrincipal.add(painelCorpoPrincipal, BorderLayout.CENTER);
+    
+        // Painel de botões na parte inferior
+        JPanel painelBotoes = new JPanel();
+        painelBotoes.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
         JButton botaoEncerrarSessao = new JButton("Encerrar Sessão");
         JButton botaoEncerrarSistema = new JButton("Encerrar Sistema");
         JButton botaoVoltar = new JButton("Voltar de Sair para o Menu Principal");
@@ -838,9 +927,7 @@ public class InterfaceCofreDigital {
         painelBotoes.add(botaoEncerrarSistema);
         painelBotoes.add(botaoVoltar);
     
-        // Adiciona painelBotoes ao painelCorpo2
-        painelCorpo2.add(painelBotoes);
-        janelaPrincipal.add(painelCorpo2, BorderLayout.SOUTH);
+        janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
     
         // Definindo ações para os botões
         botaoEncerrarSessao.addActionListener(e -> {
@@ -858,28 +945,31 @@ public class InterfaceCofreDigital {
             nomeUsuario = null;
             qtdAcessosUsuario = null;
             emailUsuario = null;
-
+    
             database.insertIntoRegistros(1004, idUsuario, null);    // Sessão encerrada para <login_name>.
-            
+    
             idUsuario = -1;
-
+    
             // Redireciona para a tela de login
-            mostrarTelaNomeLogin();        
+            mostrarTelaNomeLogin();
         });
-
+    
         botaoEncerrarSistema.addActionListener(e -> {
             database.insertIntoRegistros(8003, idUsuario, null);    // Botão encerrar sistema pressionado por <login_name>.
             database.insertIntoRegistros(1002, -1, null);   // Sistema encerrado.
-            System.exit(0);  
+            System.exit(0);
         });
-
+    
         botaoVoltar.addActionListener(e -> {
             database.insertIntoRegistros(8004, idUsuario, null);    // Botão voltar de sair para o menu principal pressionado por <login_name>.
             mostrarTelaMenu();
         });
     
-        janelaPrincipal.pack();
+        janelaPrincipal.setSize(550, 200); // Define o tamanho fixo da janela
+        janelaPrincipal.setMinimumSize(new Dimension(550, 200)); // Define o tamanho mínimo da janela
+        janelaPrincipal.setPreferredSize(new Dimension(550, 200)); // Define o tamanho preferido da janela
+        janelaPrincipal.setLocationRelativeTo(null); // Centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }
-
+               
 }
