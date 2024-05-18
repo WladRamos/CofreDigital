@@ -35,20 +35,17 @@ public class Cadastro {
     // Métodos para o cadastro de um novo usuário do Cofre Digital    
 
     public String verificaEntradasDoCadastro() {
-        if (!verificaCaminhoDoArquivo(caminhoCertificadoDigital)) {
+        if (!verificaCaminhoDoArquivo(caminhoCertificadoDigital) || !verificaCertificadoDigital()) {
             return "Caminho do arquivo do certificado digital inválido.";
-        }
-        if (!verificaCertificadoDigital()) {
-            return "Certificado digital inválido";
         }
         if (!verificaCaminhoDoArquivo(caminhoChavePrivada)) {
             return "Caminho do arquivo da chave privada inválido.";
         }
         if (!verificaFraseSecretaDaChavePrivada()) {
-            return "Frase secreta incorreta para a chave privada fornecida.";
+            return "Frase secreta inválida para a chave privada fornecida.";
         }
         if (!verificaChavePrivadaComChavePublica()) {
-            return "Par de chaves inválido. Chave pública presente no certificado não corresponde à chave privada fornecida.";
+            return "Assinatura digital inválida para a chave privada fornecida.";
         }
         if (grupo!=1 && grupo!=2) {
             return "Grupo inválido. Escolha 1 para Administrador ou 2 para Usuário.";
