@@ -1,10 +1,16 @@
+/*  
+INF1416 - Segurança da Informação - 2024.1 - 3WA
+T4: Cofre Digital - Prof.: Anderson Oliveira da Silva
+Nome: Marina Schuler Martins Matrícula: 2110075
+Nome: Wladimir Calazam de Araujo Goes Ramos Matrícula: 2110104
+*/
+
 import javax.crypto.Cipher;
 import java.io.*;
 import java.security.*;
 import java.util.*;
 
 public class RecuperaArquivo {
-    //private String emailUsuario;
     private String grupoUsuario;
     private String pastaSegura;
     private PublicKey publicKeyAdmin;
@@ -15,7 +21,6 @@ public class RecuperaArquivo {
     private byte[] textoPlanoDocx;
 
     public RecuperaArquivo(String emailUsuario, String grupoUsuario, String pastaSegura, PublicKey publicKeyAdmin, PrivateKey privateKeyAdmin, PublicKey publicKeyUser, PrivateKey privateKeyUser) {
-        //this.emailUsuario = emailUsuario;
         this.grupoUsuario = grupoUsuario;
         this.pastaSegura = pastaSegura;
         this.publicKeyAdmin = publicKeyAdmin;

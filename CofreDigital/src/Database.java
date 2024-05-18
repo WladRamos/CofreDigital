@@ -1,16 +1,13 @@
-import java.sql.Timestamp;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalTime;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+/*  
+INF1416 - Segurança da Informação - 2024.1 - 3WA
+T4: Cofre Digital - Prof.: Anderson Oliveira da Silva
+Nome: Marina Schuler Martins Matrícula: 2110075
+Nome: Wladimir Calazam de Araujo Goes Ramos Matrícula: 2110104
+*/
+
+import java.time.*;
+import java.sql.*;
+import java.util.*;
 
 public class Database {
 

@@ -1,3 +1,10 @@
+/*  
+INF1416 - Segurança da Informação - 2024.1 - 3WA
+T4: Cofre Digital - Prof.: Anderson Oliveira da Silva
+Nome: Marina Schuler Martins Matrícula: 2110075
+Nome: Wladimir Calazam de Araujo Goes Ramos Matrícula: 2110104
+*/
+
 import javax.swing.JOptionPane;
 
 public class Main {
@@ -8,7 +15,7 @@ public class Main {
             JOptionPane.showMessageDialog(
                 null,
                 "Falha ao conectar com o banco de dados. \nTente novamente mais tarde.", 
-                "Warning", JOptionPane.ERROR_MESSAGE
+                "Aviso", JOptionPane.ERROR_MESSAGE
             );
             System.exit(1);
         }
@@ -19,4 +26,5 @@ public class Main {
             new InterfaceCofreDigital(1);
         }
     }
+
 }

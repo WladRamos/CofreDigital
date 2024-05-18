@@ -1,13 +1,17 @@
-import java.awt.image.BufferedImage;
+/*  
+INF1416 - Segurança da Informação - 2024.1 - 3WA
+T4: Cofre Digital - Prof.: Anderson Oliveira da Silva
+Nome: Marina Schuler Martins Matrícula: 2110075
+Nome: Wladimir Calazam de Araujo Goes Ramos Matrícula: 2110104
+*/
+
 import java.io.*;
 import java.security.*;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
+import java.security.cert.*;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Base64;
-import java.util.Hashtable;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.awt.image.BufferedImage;
+import java.util.*;
+import java.util.regex.*;
 
 import javax.crypto.*;
 
