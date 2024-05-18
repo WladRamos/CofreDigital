@@ -71,7 +71,7 @@ public class CadastroTest {
             "12345678"
         );
         String verified = cadastro.verificaEntradasDoCadastro();
-        assertEquals("Frase secreta incorreta para a chave privada fornecida.", verified);
+        assertEquals("Frase secreta inválida para a chave privada fornecida.", verified);
     }
 
     @Test
@@ -85,7 +85,7 @@ public class CadastroTest {
             "12345678"
         );
         String verified = cadastro.verificaEntradasDoCadastro();
-        assertEquals("Par de chaves inválido. Chave pública presente no certificado não corresponde à chave privada fornecida.", verified);
+        assertEquals("Assinatura digital inválida para a chave privada fornecida.", verified);
     }
 
     @Test
