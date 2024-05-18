@@ -8,7 +8,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 public class Database {
 
@@ -167,7 +169,7 @@ public class Database {
                          "mensagem_fk INT," +
                          "timestamp DATETIME," +
                          "usuario_fk INT," +
-                         "arquivo_selecionado_decriptacao VARCHAR(255)," +
+                         "arquivo VARCHAR(255)," +
                          "FOREIGN KEY (mensagem_fk) REFERENCES Mensagens(MID)," +
                          "FOREIGN KEY (usuario_fk) REFERENCES Usuarios(UID)" +
                          ")";
@@ -306,6 +308,24 @@ public class Database {
             e.printStackTrace();
             return -1;
         }
+    }
+
+    private String replacePlaceholdersDaMensagem(String msg, String login_name, String arq_name) {
+        if (msg.contains("<login_name>")) {
+            if (login_name != null) {
+               msg = msg.replace("<login_name>", login_name); 
+            } else {
+                msg = msg.replace("<login_name>", "usuário corrente não logado");
+            }
+        }
+        if (msg.contains("<arq_name>")) {
+            if (arq_name != null) {
+                msg = msg.replace("<arq_name>", arq_name);
+            } else {
+                msg = msg.replace("<arq_name>", "arquivo não identificado");
+            }
+        }
+        return msg;
     }
 
     // Métodos públicos para consultas no banco da dados
@@ -458,6 +478,35 @@ public class Database {
         }
     }
 
+    public List<String> getLogsEmOrdemCronologica() {
+        String sql = "SELECT r.RID, m.mensagem, r.timestamp, u.email, r.arquivo " +
+                     "FROM Registros r " +
+                     "JOIN Mensagens m ON r.mensagem_fk = m.MID " +
+                     "LEFT JOIN Usuarios u ON r.usuario_fk = u.UID " +
+                     "ORDER BY r.timestamp ASC";
+        try {
+            List<String> listaDeLogs = new ArrayList<>();
+            PreparedStatement statement = connection.prepareStatement(sql);
+            ResultSet resultSet = statement.executeQuery();
+
+            while (resultSet.next()) {
+                String mensagem = resultSet.getString("mensagem");   
+                Timestamp timestamp = resultSet.getTimestamp("timestamp");
+                String login_name = resultSet.getString("email");
+                String arq_name = resultSet.getString("arquivo");
+
+                String mensagem_formatada = replacePlaceholdersDaMensagem(mensagem, login_name, arq_name);
+                String log = String.format("%s      %s", timestamp.toString(), mensagem_formatada);
+                listaDeLogs.add(log);
+            }
+            return listaDeLogs;
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     // Métodos auxiliares para manipulações no banco da dados
     
     private int getChaveiroDoUsuarioIfExists(int uid) {
@@ -578,7 +627,7 @@ public class Database {
             Timestamp timestamp = Timestamp.valueOf(horaAtual.atDate(java.time.LocalDate.now()));
     
             if (usuarioExists(uid)) {
-                String sql = "INSERT INTO Registros (mensagem_fk, timestamp, usuario_fk, arquivo_selecionado_decriptacao) VALUES (?, ?, ?, ?)";
+                String sql = "INSERT INTO Registros (mensagem_fk, timestamp, usuario_fk, arquivo) VALUES (?, ?, ?, ?)";
                 PreparedStatement statement = connection.prepareStatement(sql);
                 statement.setInt(1, mid);
                 statement.setTimestamp(2, timestamp);
@@ -587,7 +636,7 @@ public class Database {
                 int rowsInserted = statement.executeUpdate();
                 return rowsInserted > 0; 
             } else {
-                String sql = "INSERT INTO Registros (mensagem_fk, timestamp, arquivo_selecionado_decriptacao) VALUES (?, ?, ?)";
+                String sql = "INSERT INTO Registros (mensagem_fk, timestamp, arquivo) VALUES (?, ?, ?)";
                 PreparedStatement statement = connection.prepareStatement(sql);
                 statement.setInt(1, mid);
                 statement.setTimestamp(2, timestamp);
