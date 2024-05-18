@@ -24,7 +24,7 @@ public class InterfaceCofreDigital {
     private JButton botaoOK;
     private ArrayList<String[]> possibilidadesSenha = new ArrayList<>();
     private String grupoUsuario, nomeUsuario, qtdAcessosUsuario, emailUsuario;
-    private int idUsuario, idAdministrador;
+    private int idUsuario = -1, idAdministrador = -1;
     private String fraseSecretaAdmin;
     private final String emailAdmin = "admin@inf1416.puc-rio.br";
 
@@ -131,6 +131,7 @@ public class InterfaceCofreDigital {
             if (uid != -1 && u != null) {
                 if (database.usuarioIsBlocked(uid)) {
                     database.insertIntoRegistros(2004, uid, null);    // Login name <login_name> identificado com acesso bloqueado.
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Usuário identificado com acesso bloqueado. Aguarde 2 minutos para tentar novamente.", "Acesso Negado", JOptionPane.ERROR_MESSAGE);
                 } else { 
                     idUsuario = uid;
                     emailUsuario = campoTextoEmailInput;
@@ -152,6 +153,7 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaSenha() {
+        possibilidadesSenha.clear();
         database.insertIntoRegistros(3001, idUsuario, null);    // Autenticação etapa 2 iniciada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
@@ -177,6 +179,7 @@ public class InterfaceCofreDigital {
         painelControle.add(botaoLimpar);
     
         botaoLimpar.addActionListener(e -> {
+            possibilidadesSenha.clear();
             campoSenha.setText("");
             botaoOK.setEnabled(false);
         });
@@ -286,6 +289,7 @@ public class InterfaceCofreDigital {
                 tentativasErradas = 0;
                 database.insertIntoRegistros(4003, idUsuario, null);    // Token verificado positivamente para <login_name>.
                 database.insertIntoRegistros(4002, idUsuario, null);    // Autenticação etapa 3 encerrada para <login_name>.
+                database.insertIntoRegistros(1003, idUsuario, null);    // Sessão iniciada para <login_name>.
                 mostrarTelaMenu();
             } else {
                 tentativasErradas++;
@@ -325,7 +329,6 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaMenu() {
-        database.insertIntoRegistros(1003, idUsuario, null);    // Sessão iniciada para <login_name>.
         database.insertIntoRegistros(5001, idUsuario, null);    // Tela principal apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
@@ -374,8 +377,7 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaCadastro(int status) {
-        int uidCadastrador = (status == 0) ? -1 : idUsuario;
-        database.insertIntoRegistros(6001, uidCadastrador, null);    // Tela de cadastro apresentada para <login_name>.
+        database.insertIntoRegistros(6001, idUsuario, null);    // Tela de cadastro apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
 
@@ -442,7 +444,7 @@ public class InterfaceCofreDigital {
             JButton botaoVoltar = new JButton("Voltar");
             painelBotoes.add(botaoVoltar);
             botaoVoltar.addActionListener(e -> {
-                database.insertIntoRegistros(6010, uidCadastrador, null);    // Botão voltar de cadastro para o menu principal pressionado por <login_name>.
+                database.insertIntoRegistros(6010, idUsuario, null);    // Botão voltar de cadastro para o menu principal pressionado por <login_name>.
                 mostrarTelaMenu();
             });
         }
@@ -452,7 +454,7 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
 
         botaoCadastrar.addActionListener(e -> {
-            database.insertIntoRegistros(6002, uidCadastrador, null);    // Botão cadastrar pressionado por <login_name>.
+            database.insertIntoRegistros(6002, idUsuario, null);    // Botão cadastrar pressionado por <login_name>.
             Object grupoSelecionado = comboBoxGrupo.getSelectedItem();
             int codigoGrupo = 0;
             if ("Administrador".equals(grupoSelecionado)) {
@@ -475,12 +477,22 @@ public class InterfaceCofreDigital {
                 try {
                     HashMap<String,String> info = cadastro.getDetalhesDoCertificadoDigital();
                     mostrarPopUpConfirmacao(cadastro, info, status);
-                
                 } catch (Exception x) {
                     JOptionPane.showMessageDialog(janelaPrincipal, "Falha ao extrair as informações do certificado digital.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                     x.printStackTrace();
                 }
             } else {
+                if (msg.equals("Caminho do arquivo do certificado digital inválido.")) {
+                    database.insertIntoRegistros(6004, idUsuario, null);   // Caminho do certificado digital inválido fornecido por <login_name>.
+                } else if (msg.equals("Caminho do arquivo da chave privada inválido.")) {
+                    database.insertIntoRegistros(6005, idUsuario, null);   // Chave privada verificada negativamente para <login_name> (caminho inválido).
+                } else if (msg.equals("Frase secreta inválida para a chave privada fornecida.")) {
+                    database.insertIntoRegistros(6006, idUsuario, null);   // Chave privada verificada negativamente para <login_name> (frase secreta inválida).
+                } else if (msg.equals("Assinatura digital inválida para a chave privada fornecida.")) {
+                    database.insertIntoRegistros(6007, idUsuario, null);   // Chave privada verificada negativamente para <login_name> (assinatura digital inválida).
+                } else if (msg.equals("Senha e confirmação de senha não são iguais.")) {
+                    database.insertIntoRegistros(6003, idUsuario, null);    // Senha pessoal inválida fornecida por <login_name>.
+                }
                 JOptionPane.showMessageDialog(janelaPrincipal, msg, "Erro de Validação", JOptionPane.ERROR_MESSAGE);
             }                                       
         });
@@ -540,12 +552,14 @@ public class InterfaceCofreDigital {
         // Criar os botões
         JButton confirmButton = new JButton("Confirmar");
         confirmButton.addActionListener(e -> {
+            database.insertIntoRegistros(6008, idUsuario, null);    // Confirmação de dados aceita por <login_name>.
             String codigoTOTP = cadastro.cadastraUsuario();
             mostrarPopUpCodigoTOTP(codigoTOTP,statusTipoCadastro);
         });
 
         JButton cancelButton = new JButton("Cancelar");
         cancelButton.addActionListener(e -> {
+            database.insertIntoRegistros(6009, idUsuario, null);    // Confirmação de dados rejeitada por <login_name>.
             frame.dispose();
         });
 
@@ -577,7 +591,6 @@ public class InterfaceCofreDigital {
         // Criar os botões
         JButton confirmButton = new JButton("Confirmar");
         confirmButton.addActionListener(e -> {
-
             if(statusTipoCadastro == 0){
                 mostrarTelaNomeLogin();
             }else{
@@ -597,6 +610,7 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaConsulta() {
+        database.insertIntoRegistros(7001, idUsuario, null);   // Confirmação de dados rejeitada por <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
@@ -656,9 +670,13 @@ public class InterfaceCofreDigital {
         janelaPrincipal.pack();
         janelaPrincipal.setVisible(true);
 
-        btnVoltar.addActionListener(e -> mostrarTelaMenu());
+        btnVoltar.addActionListener(e -> {
+            database.insertIntoRegistros(7002, idUsuario, null);   // Botão voltar de consulta para o menu principal pressionado por <login_name>.
+            mostrarTelaMenu();
+        });
 
         btnListar.addActionListener(e -> {
+            database.insertIntoRegistros(7003, idUsuario, null);   // Botão Listar de consulta pressionado por <login_name>.
             try {
                 byte[] chaveSecredaAdminCript = database.getChavePrivadaCriptografadaDoUsuario(idAdministrador);
                 PrivateKey objPrivateKeyAdmin = GestorDeSeguranca.generatePrivateKeyFromBIN(chaveSecredaAdminCript, fraseSecretaAdmin);
@@ -793,8 +811,9 @@ public class InterfaceCofreDigital {
     
         // Definindo ações para os botões
         botaoEncerrarSessao.addActionListener(e -> {
+            database.insertIntoRegistros(1004, idUsuario, null);    // Sessão encerrada para <login_name>.
+            
             // Reseta todas as variáveis do usuário
-            database = null;
             autenticacao = null;
             campoTextoTOTP = null;
             campoSenha = null;
@@ -806,10 +825,8 @@ public class InterfaceCofreDigital {
             nomeUsuario = null;
             qtdAcessosUsuario = null;
             emailUsuario = null;
-            idUsuario = 0;
-            fraseSecretaAdmin = null;
+            idUsuario = -1;
 
-            database.insertIntoRegistros(1004, idUsuario, null);    // Sessão encerrada para <login_name>.
             // Redireciona para a tela de login
             mostrarTelaNomeLogin();        
         });
