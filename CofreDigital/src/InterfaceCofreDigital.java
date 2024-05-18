@@ -6,6 +6,7 @@ import static org.junit.Assert.fail;
 
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.*;
@@ -552,7 +553,8 @@ public class InterfaceCofreDigital {
         confirmButton.addActionListener(e -> {
             database.insertIntoRegistros(6008, idUsuario, null);    // Confirmação de dados aceita por <login_name>.
             String codigoTOTP = cadastro.cadastraUsuario();
-            mostrarPopUpCodigoTOTP(codigoTOTP,statusTipoCadastro);
+            BufferedImage QRcode = GestorDeSeguranca.generateQRcodeDaChaveSecreta(codigoTOTP, info.get("email"));
+            mostrarPopUpCodigoTOTP(codigoTOTP, QRcode, statusTipoCadastro);
         });
 
         JButton cancelButton = new JButton("Cancelar");
@@ -573,7 +575,7 @@ public class InterfaceCofreDigital {
         frame.setVisible(true);
     }
 
-    private void mostrarPopUpCodigoTOTP(String codigoTOTP, int statusTipoCadastro) {
+    private void mostrarPopUpCodigoTOTP(String codigoTOTP, BufferedImage QRcode, int statusTipoCadastro) {
         JFrame frame = new JFrame();
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(300, 300);
@@ -585,6 +587,11 @@ public class InterfaceCofreDigital {
         panel.add(new JLabel("Insira o código a seguir como chave de configuração no seu google Authenticator: "));
         panel.add(new JLabel(""));
         panel.add(new JLabel(codigoTOTP));
+        panel.add(new JLabel(""));
+        panel.add(new JLabel("Ou utilize a opção Ler QR code: "));
+        panel.add(new JLabel(""));
+        panel.add(new JLabel(new ImageIcon(QRcode)));
+        panel.add(new JLabel(""));
 
         // Criar os botões
         JButton confirmButton = new JButton("Confirmar");

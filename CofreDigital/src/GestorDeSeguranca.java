@@ -1,13 +1,19 @@
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.security.*;
 import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Base64;
+import java.util.Hashtable;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.crypto.*;
+
+import com.google.zxing.*;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.decoder.ErrorCorrectionLevel;
 
 import org.bouncycastle.crypto.generators.OpenBSDBCrypt;
 
@@ -84,8 +90,36 @@ public class GestorDeSeguranca {
         return chaveSecretaCodificadaBase32;
     } 
     
-    public static void generateQRcodeDaChaveSecreta(String chaveSecretaCodificadaBase32) {
-        // todo
+    public static BufferedImage generateQRcodeDaChaveSecreta(String chaveSecretaCodificadaBase32, String emailUsuario) {
+        // Construindo a URI OTPAuth
+        String TYPE = "totp";
+        String LABEL = "Cofre%20Digital:" + emailUsuario;
+        String PARAMETERS = "secret=" + chaveSecretaCodificadaBase32;
+        String uri = "otpauth://" + TYPE + "/" + LABEL + "?" + PARAMETERS;
+
+        // Configurando parâmetros para a geração do QR Code
+        Hashtable<EncodeHintType, Object> hintMap = new Hashtable<>();
+        hintMap.put(EncodeHintType.ERROR_CORRECTION, ErrorCorrectionLevel.L);
+        hintMap.put(EncodeHintType.MARGIN, 1);
+
+        try {
+            BitMatrix matrix = new MultiFormatWriter().encode(uri, BarcodeFormat.QR_CODE, 200, 200, hintMap);
+
+            // Convertendo o BitMatrix em BufferedImage
+            int width = matrix.getWidth();
+            int height = matrix.getHeight();
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                    image.setRGB(x, y, matrix.get(x, y) ? 0xFF000000 : 0xFFFFFFFF);
+                }
+            }
+            return image;
+
+        } catch (WriterException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     // Métodos Certificado Digital

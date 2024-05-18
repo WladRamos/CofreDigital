@@ -2,6 +2,7 @@ import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,6 +11,10 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 
 import javax.crypto.SecretKey;
+import javax.swing.ImageIcon;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+
 import java.security.cert.X509Certificate;
 
 public class GestorDeSegurancaTest {
@@ -85,16 +90,51 @@ public class GestorDeSegurancaTest {
             fail("Exception thrown while generating secret key");
         }
     }
-    /* 
+    
     @Test
     public void testGenerateQRcodeDaChaveSecreta() {
         try {
-           // todo 
+            String chaveSecreta = GestorDeSeguranca.generateChaveSecreta();
+            System.out.println("chave secreta: " + chaveSecreta);
+            assertNotNull(chaveSecreta);
+            assertEquals(32, chaveSecreta.length()); 
+            assertTrue(chaveSecreta.matches("[A-Z2-7]+"));
+
+            BufferedImage QRcode = GestorDeSeguranca.generateQRcodeDaChaveSecreta(chaveSecreta, "usuario_teste@email.com");
+            assertNotNull(QRcode);
+            JFrame frame = new JFrame("QR Code");
+            JLabel label = new JLabel(new ImageIcon(QRcode));
+            frame.add(label);
+            frame.pack();
+            frame.setVisible(true);
+
+            long startTime = System.currentTimeMillis();
+            while (frame.isVisible()) {
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - startTime >= 30000) {
+                    String resposta = "Google Authenticator: " + getValidTOTP(chaveSecreta);
+                    System.out.println(resposta);
+                    startTime = currentTime;
+                }
+                Thread.sleep(30000); 
+            }
+
         } catch (Exception e) {
-            fail("Exception thrown while generating secret key QRcode");
+            fail("Exception thrown while generating secret key");
         }
     }
-    */
+
+    private String getValidTOTP(String chaveSecretaCodificadaBase32) {
+        try {
+            // Retornar o código TOTP esperado para a validação correta
+            TOTP totp = new TOTP(chaveSecretaCodificadaBase32, 30);
+            return totp.generateCode();
+        } catch(Exception e) {
+            fail("Erro ao pegar o TOTP válido: " + e.getMessage());
+            return null;
+        }
+    }
+
     // Métodos Certificado Digital
 
     @Test
