@@ -66,4 +66,15 @@ public class DatabaseTest {
         }
     }
     
+    @Test
+    public void testInsertIntoRegistros() {
+        Database database = Database.getInstance();
+        try {
+            boolean inserted = database.insertIntoRegistros(1001, -1, null);
+            assertTrue(inserted);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 }
