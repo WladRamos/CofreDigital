@@ -244,8 +244,6 @@ public class Database {
                 statement.executeUpdate("INSERT INTO Mensagens (MID, mensagem) VALUES (8004, 'Botão voltar de sair para o menu principal pressionado por <login_name>.')");
 
                 statement.close();
-            } else {
-                System.out.println("populateTableMensagens() abortada. Tabela Mensagens não está vazia.");
             }
             
         } catch (SQLException e) {
@@ -263,8 +261,6 @@ public class Database {
                 statement.executeUpdate("INSERT INTO Grupos (GID, nome_grupo) VALUES (2, 'Usuário')");
                 
                 statement.close();
-            } else {
-                System.out.println("populateTableGrupos() abortada. Tabela Grupos não está vazia.");
             }
             
         } catch (SQLException e) {

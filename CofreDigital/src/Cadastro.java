@@ -144,7 +144,7 @@ public class Cadastro {
                     System.err.println("Erro ao gerar a chave secreta TOTP criptografada.");
                     return null;
                 }
-                System.out.println("chave: " + chaveSecretaTOTPcriptografada);
+                
             } catch (Exception e) {
                 System.err.println("Erro ao criptografar a chave secreta TOTP com a senha do usuário.");
                 e.printStackTrace();

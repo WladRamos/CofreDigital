@@ -67,9 +67,6 @@ public class RecuperaArquivo {
             e.printStackTrace();
         }
 
-        for (List<String> file : listaArquivos) {
-            System.out.println(file);
-        }
         return filtro(listaArquivos);
     }
 
