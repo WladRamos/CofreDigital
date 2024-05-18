@@ -94,9 +94,10 @@ public class InterfaceCofreDigital {
         });
     
         // Definindo um tamanho fixo para a janela
-        janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
-        janelaPrincipal.setMinimumSize(new Dimension(400, 220)); // Define o tamanho mínimo da janela
-        janelaPrincipal.setPreferredSize(new Dimension(400, 220)); // Define o tamanho preferido da janela
+        janelaPrincipal.pack();
+        //janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
+        //janelaPrincipal.setMinimumSize(new Dimension(400, 220)); // Define o tamanho mínimo da janela
+        //janelaPrincipal.setPreferredSize(new Dimension(400, 220)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }   
@@ -164,7 +165,8 @@ public class InterfaceCofreDigital {
 
         botaoLimpar.addActionListener(e -> campoTextoEmail.setText(""));
         // Definindo um tamanho fixo para a janela
-        janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
+        janelaPrincipal.pack();
+        //janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
         janelaPrincipal.setLocationRelativeTo(null);
     }
 
@@ -232,10 +234,11 @@ public class InterfaceCofreDigital {
                 }
             }
         });
-    
-        janelaPrincipal.setSize(400, 300); // ajuste os valores conforme necessário
-        janelaPrincipal.setMinimumSize(new Dimension(400, 300)); // Define o tamanho mínimo da janela
-        janelaPrincipal.setPreferredSize(new Dimension(400, 300)); // Define o tamanho preferido da janela
+        
+        janelaPrincipal.pack();
+        //janelaPrincipal.setSize(400, 300); // ajuste os valores conforme necessário
+        //janelaPrincipal.setMinimumSize(new Dimension(400, 300)); // Define o tamanho mínimo da janela
+        //janelaPrincipal.setPreferredSize(new Dimension(400, 300)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }
@@ -337,9 +340,9 @@ public class InterfaceCofreDigital {
         });
     
         janelaPrincipal.pack();
-        janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
-        janelaPrincipal.setMinimumSize(new Dimension(400, 220)); // Define o tamanho mínimo da janela
-        janelaPrincipal.setPreferredSize(new Dimension(400, 220)); // Define o tamanho preferido da janela
+        //janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
+        //janelaPrincipal.setMinimumSize(new Dimension(400, 220)); // Define o tamanho mínimo da janela
+        //janelaPrincipal.setPreferredSize(new Dimension(400, 220)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }
@@ -410,10 +413,11 @@ public class InterfaceCofreDigital {
             database.insertIntoRegistros(5004, idUsuario, null);    // Opção 3 do menu principal selecionada por <login_name>.
             mostrarTelaSaida();
         });
-    
-        janelaPrincipal.setSize(400, 300); // ajuste os valores conforme necessário
-        janelaPrincipal.setMinimumSize(new Dimension(400, 300)); // Define o tamanho mínimo da janela
-        janelaPrincipal.setPreferredSize(new Dimension(400, 300)); // Define o tamanho preferido da janela
+        
+        janelaPrincipal.pack();
+        //janelaPrincipal.setSize(400, 300); // ajuste os valores conforme necessário
+        //janelaPrincipal.setMinimumSize(new Dimension(400, 300)); // Define o tamanho mínimo da janela
+        //janelaPrincipal.setPreferredSize(new Dimension(400, 300)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }
@@ -548,10 +552,11 @@ public class InterfaceCofreDigital {
                 JOptionPane.showMessageDialog(janelaPrincipal, msg, "Erro de Validação", JOptionPane.ERROR_MESSAGE);
             }                                       
         });
-    
-        janelaPrincipal.setSize(540, 500); // ajuste os valores conforme necessário
-        janelaPrincipal.setMinimumSize(new Dimension(540, 500)); // Define o tamanho mínimo da janela
-        janelaPrincipal.setPreferredSize(new Dimension(540, 500)); // Define o tamanho preferido da janela
+        
+        janelaPrincipal.pack();
+        //janelaPrincipal.setSize(540, 500); // ajuste os valores conforme necessário
+        //janelaPrincipal.setMinimumSize(new Dimension(540, 500)); // Define o tamanho mínimo da janela
+        //janelaPrincipal.setPreferredSize(new Dimension(540, 500)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }    
@@ -742,9 +747,10 @@ public class InterfaceCofreDigital {
     
         janelaPrincipal.add(painelTabelaEBotoes, BorderLayout.SOUTH);
     
-        janelaPrincipal.setSize(800, 600); // Define o tamanho fixo da janela
-        janelaPrincipal.setMinimumSize(new Dimension(800, 600)); // Define o tamanho mínimo da janela
-        janelaPrincipal.setPreferredSize(new Dimension(800, 600)); // Define o tamanho preferido da janela
+        janelaPrincipal.pack();
+        //janelaPrincipal.setSize(800, 600); // Define o tamanho fixo da janela
+        //janelaPrincipal.setMinimumSize(new Dimension(800, 600)); // Define o tamanho mínimo da janela
+        //janelaPrincipal.setPreferredSize(new Dimension(800, 600)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // Centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     
@@ -964,10 +970,11 @@ public class InterfaceCofreDigital {
             database.insertIntoRegistros(8004, idUsuario, null);    // Botão voltar de sair para o menu principal pressionado por <login_name>.
             mostrarTelaMenu();
         });
-    
-        janelaPrincipal.setSize(550, 200); // Define o tamanho fixo da janela
-        janelaPrincipal.setMinimumSize(new Dimension(550, 200)); // Define o tamanho mínimo da janela
-        janelaPrincipal.setPreferredSize(new Dimension(550, 200)); // Define o tamanho preferido da janela
+        
+        janelaPrincipal.pack();
+        //janelaPrincipal.setSize(550, 200); // Define o tamanho fixo da janela
+        //janelaPrincipal.setMinimumSize(new Dimension(550, 200)); // Define o tamanho mínimo da janela
+        //janelaPrincipal.setPreferredSize(new Dimension(550, 200)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // Centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }
