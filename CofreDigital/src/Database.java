@@ -278,15 +278,15 @@ public class Database {
         try {
             Statement statement = connection.createStatement();
             ResultSet resultSet = statement.executeQuery("SELECT COUNT(*) FROM " + table);
-            resultSet.next();
-            int count = resultSet.getInt(1);
-            resultSet.close();
-            return count;
-
+            if (resultSet.next()) {
+               int count = resultSet.getInt(1);
+                resultSet.close();
+                return count; 
+            }
         } catch (SQLException e){
-            e.printStackTrace();
-            return -1;
+            System.out.println("Exception: countTableEntries(String table)");
         }
+        return -1;
     }
 
     private int countMessagesForUser(int uid, int mid) {
@@ -297,14 +297,14 @@ public class Database {
             statement.setInt(1, uid);
             statement.setInt(2, mid);
             ResultSet resultSet = statement.executeQuery();
-            resultSet.next();
-            int count = resultSet.getInt("count");
-            return count;
-
+            if (resultSet.next()) {
+               int count = resultSet.getInt("count");
+                return count; 
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
+            System.out.println("Exception: countMessagesForUser(int uid, int mid)");
         }
+        return -1;
     }
 
     private String replacePlaceholdersDaMensagem(String msg, String login_name, String arq_name) {
@@ -334,14 +334,14 @@ public class Database {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setString(1, email);
             ResultSet resultSet = statement.executeQuery();
-            resultSet.next();
-            int uid = resultSet.getInt("UID");
-            return uid;
-            
+            if (resultSet.next()) {
+                int uid = resultSet.getInt("UID");
+                return uid;
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
-            return -1;
+            System.out.println("Exception: getUsuarioIfExists(String email)");
         }
+        return -1;
     }
 
     public HashMap<String, String> getInfoDoUsuario(int uid) {
@@ -355,18 +355,18 @@ public class Database {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, uid);
             ResultSet resultSet = statement.executeQuery();
-            resultSet.next();
-            // Inserindo as informações do usuário no HashMap    
-            HashMap<String, String> info = new HashMap<>();
-            info.put("nome", resultSet.getString("nome"));
-            info.put("grupo", resultSet.getString("nome_grupo"));
-            info.put("numero_de_acessos", Integer.toString(countMessagesForUser(uid, 2003)));   // duvida: conferir se a mensagem 2003 é o que configura um acesso
-            return info;
-
+            if (resultSet.next()) {
+                // Inserindo as informações do usuário no HashMap    
+                HashMap<String, String> info = new HashMap<>();
+                info.put("nome", resultSet.getString("nome"));
+                info.put("grupo", resultSet.getString("nome_grupo"));
+                info.put("numero_de_acessos", Integer.toString(countMessagesForUser(uid, 2003)));   // duvida: conferir se a mensagem 2003 é o que configura um acesso
+                return info;
+            }           
         } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            System.out.println("Exception: getInfoDoUsuario(int uid)");
         }
+        return null;
     }
 
     public String getHashDoUsuario(int uid) {
@@ -375,14 +375,14 @@ public class Database {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, uid);
             ResultSet resultSet = statement.executeQuery();
-            resultSet.next();
-            String hash = resultSet.getString("hash");
-            return hash;
-            
+            if (resultSet.next()) {
+               String hash = resultSet.getString("hash");
+                return hash; 
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            System.out.println("Exception: getHashDoUsuario(int uid)");
         }
+        return null;
     }
 
     public byte[] getChaveSecretaCriptografadaDoUsuario(int uid) {
@@ -391,14 +391,14 @@ public class Database {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, uid);
             ResultSet resultSet = statement.executeQuery();
-            resultSet.next();
-            byte[] chaveSecreta = resultSet.getBytes("chave_secreta");
-            return chaveSecreta;
-            
+            if (resultSet.next()) {
+              byte[] chaveSecreta = resultSet.getBytes("chave_secreta");
+                return chaveSecreta;  
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            System.out.println("Exception: getChaveSecretaCriptografadaDoUsuario(int uid)");
         }
+        return null;
     }
 
     public byte[] getChavePrivadaCriptografadaDoUsuario(int uid) {
@@ -408,14 +408,14 @@ public class Database {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, uid);
             ResultSet resultSet = statement.executeQuery();
-            resultSet.next();
-            byte[] chave_privada_criptografada = resultSet.getBytes("chave_privada_criptografada");
-            return chave_privada_criptografada;
-            
+            if (resultSet.next()) {
+               byte[] chave_privada_criptografada = resultSet.getBytes("chave_privada_criptografada");
+                return chave_privada_criptografada; 
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            System.out.println("Exception: getChavePrivadaCriptografadaDoUsuario(int uid)");            
         }
+        return null;
     }
 
     public String getCertificadoDigitalDoUsuario(int uid) {
@@ -425,14 +425,14 @@ public class Database {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, uid);
             ResultSet resultSet = statement.executeQuery();
-            resultSet.next();
-            String certificado_digital = resultSet.getString("certificado_digital");
-            return certificado_digital;
-            
+            if (resultSet.next()) {
+              String certificado_digital = resultSet.getString("certificado_digital");
+                return certificado_digital;  
+            }
         } catch (SQLException e) {
-            e.printStackTrace();
-            return null;
+            System.out.println("Exception: getCertificadoDigitalDoUsuario(int uid)");
         }
+        return null;
     }
     
     public int countConsultasDoUsuario(int uid) {
@@ -512,14 +512,14 @@ public class Database {
             PreparedStatement statement = connection.prepareStatement(sql);
             statement.setInt(1, uid);
             ResultSet resultSet = statement.executeQuery();
-            resultSet.next();
-            int chaveiro_fk = resultSet.getInt("chaveiro_fk");
-            return chaveiro_fk;
-
+            if (resultSet.next()) {
+               int chaveiro_fk = resultSet.getInt("chaveiro_fk");
+                return chaveiro_fk; 
+            }
         } catch (Exception e) {
-            e.printStackTrace();
-            return -1;
-        }        
+            System.out.println("Exception: getChaveiroDoUsuarioIfExists(int uid)");
+        }  
+        return -1;      
     }
     
     private int insertIntoChaveiro(byte[] chave_privada_criptografada_bin, String certificado_digital_pem) {
@@ -532,16 +532,17 @@ public class Database {
  
             if (rowsInserted > 0) {
                 ResultSet resultSet = statement.getGeneratedKeys();
-                resultSet.next();
-                int kid = resultSet.getInt(1);
-                return kid;                
+                if (resultSet.next()) {
+                   int kid = resultSet.getInt(1);
+                    return kid; 
+                }                                
             } else {
                 return -1;
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            return -1;
+            System.out.println("Exception: insertIntoChaveiro(byte[] chave_privada_criptografada_bin, String certificado_digital_pem)");
         }
+        return -1;
     }
 
     private boolean usuarioExists(int uid) {
