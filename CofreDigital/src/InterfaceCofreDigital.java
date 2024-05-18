@@ -106,21 +106,32 @@ public class InterfaceCofreDigital {
         database.insertIntoRegistros(2001, -1, null);    // Autenticação etapa 1 iniciada.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
-
-        JPanel painelCabecalho = new JPanel();
+    
+        // Criação de um painel intermediário para o cabeçalho e campo de login
+        JPanel painelSuperior = new JPanel(new BorderLayout());
         JLabel rotuloCabecalho = new JLabel("Cofre Digital - Autenticação", JLabel.CENTER);
-        painelCabecalho.add(rotuloCabecalho);
-
-        JPanel painelEmail = new JPanel(new FlowLayout());
+        rotuloCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
+        painelSuperior.add(rotuloCabecalho, BorderLayout.NORTH);
+    
+        JPanel painelLogin = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5)); // Centraliza os componentes com menos margens
         JLabel rotuloEmail = new JLabel("Login name:");
         JTextField campoTextoEmail = new JTextField(20);
-        
-        painelEmail.add(rotuloEmail);
-        painelEmail.add(campoTextoEmail);
-
-        JPanel painelBotoes = new JPanel(new FlowLayout());
+        painelLogin.add(rotuloEmail);
+        painelLogin.add(campoTextoEmail);
+        painelLogin.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+        painelSuperior.add(painelLogin, BorderLayout.CENTER);
+    
+        // Adiciona o painel superior ao BorderLayout.CENTER da janela principal
+        janelaPrincipal.add(painelSuperior, BorderLayout.CENTER);
+    
+        JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JButton botaoLogin = new JButton("OK");
-
+        JButton botaoLimpar = new JButton("LIMPAR");
+        painelBotoes.add(botaoLogin);
+        painelBotoes.add(botaoLimpar);
+        painelBotoes.setBorder(BorderFactory.createEmptyBorder(5, 10, 10, 10));
+        janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
+    
         campoTextoEmail.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
@@ -128,17 +139,8 @@ public class InterfaceCofreDigital {
                 botaoLogin.setEnabled(valido);
             }
         });
-
-        JButton botaoLimpar = new JButton("LIMPAR");
-        painelBotoes.add(botaoLogin);
-        painelBotoes.add(botaoLimpar);
         botaoLogin.setEnabled(false);
-
-        janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
-        janelaPrincipal.add(painelEmail, BorderLayout.CENTER);
-        janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
-        janelaPrincipal.setVisible(true);
-
+    
         botaoLogin.addActionListener(e -> {
             String campoTextoEmailInput = campoTextoEmail.getText();
             int uid = database.getUsuarioIfExists(campoTextoEmailInput);
@@ -162,13 +164,14 @@ public class InterfaceCofreDigital {
                 JOptionPane.showMessageDialog(janelaPrincipal, "Usuário não encontrado.", "Erro", JOptionPane.ERROR_MESSAGE);
             }
         });
-
+    
         botaoLimpar.addActionListener(e -> campoTextoEmail.setText(""));
+    
         // Definindo um tamanho fixo para a janela
         janelaPrincipal.pack();
-        //janelaPrincipal.setSize(400, 220); // ajuste os valores conforme necessário
-        janelaPrincipal.setLocationRelativeTo(null);
-    }
+        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
+        janelaPrincipal.setVisible(true);
+    }    
 
     private void mostrarTelaSenha() {
         possibilidadesSenha.clear();
@@ -424,7 +427,7 @@ public class InterfaceCofreDigital {
     
 
     private void mostrarTelaCadastro(int status) {
-        database.insertIntoRegistros(6001, idUsuario, null);    // Tela de cadastro apresentada para <login_name>.
+        database.insertIntoRegistros(6001, idUsuario, null); // Tela de cadastro apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
@@ -435,12 +438,34 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(labelTituloTela, BorderLayout.NORTH);
     
         if (status != 0) {
-            JPanel painelCabecalho = new JPanel(new GridLayout(3, 1));
-            painelCabecalho.add(new JLabel("Login: " + emailUsuario, JLabel.CENTER));
-            painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
-            painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
+            JPanel painelCabecalho = new JPanel();
+            GroupLayout layoutCabecalho = new GroupLayout(painelCabecalho);
+            painelCabecalho.setLayout(layoutCabecalho);
+    
+            layoutCabecalho.setAutoCreateGaps(true);
+            layoutCabecalho.setAutoCreateContainerGaps(true);
+    
+            JLabel labelLogin = new JLabel("Login: " + emailUsuario, JLabel.CENTER);
+            JLabel labelGrupo = new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER);
+            JLabel labelNome = new JLabel("Nome: " + nomeUsuario, JLabel.CENTER);
+    
+            layoutCabecalho.setHorizontalGroup(
+                layoutCabecalho.createSequentialGroup()
+                    .addGroup(layoutCabecalho.createParallelGroup(GroupLayout.Alignment.CENTER)
+                        .addComponent(labelLogin)
+                        .addComponent(labelGrupo)
+                        .addComponent(labelNome))
+            );
+    
+            layoutCabecalho.setVerticalGroup(
+                layoutCabecalho.createSequentialGroup()
+                    .addComponent(labelLogin)
+                    .addComponent(labelGrupo)
+                    .addComponent(labelNome)
+            );
+    
             painelCabecalho.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-            janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
+            janelaPrincipal.add(painelCabecalho, BorderLayout.CENTER);
         } else {
             janelaPrincipal.add(labelTituloTela, BorderLayout.NORTH);
         }
@@ -452,37 +477,81 @@ public class InterfaceCofreDigital {
         painelCorpo1.add(new JLabel("Total de usuários do sistema: " + nUsuarios));
         verticalBox.add(painelCorpo1);
     
-        JPanel painelCorpo2 = new JPanel(new GridLayout(6, 2, 10, 10));
-        painelCorpo2.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-        painelCorpo2.add(new JLabel("Caminho do arquivo do certificado digital:"));
+        JPanel painelCorpo2 = new JPanel();
+        GroupLayout layoutCorpo = new GroupLayout(painelCorpo2);
+        painelCorpo2.setLayout(layoutCorpo);
+    
+        layoutCorpo.setAutoCreateGaps(true);
+        layoutCorpo.setAutoCreateContainerGaps(true);
+    
+        JLabel labelCertificado = new JLabel("Caminho do arquivo do certificado digital:");
         JTextField campoCertificado = new JTextField(255);
-        painelCorpo2.add(campoCertificado);
+        campoCertificado.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
     
-        painelCorpo2.add(new JLabel("Caminho do arquivo da chave privada:"));
+        JLabel labelChavePrivada = new JLabel("Caminho do arquivo da chave privada:");
         JTextField campoChavePrivada = new JTextField(255);
-        painelCorpo2.add(campoChavePrivada);
+        campoChavePrivada.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
     
-        painelCorpo2.add(new JLabel("Frase secreta:"));
+        JLabel labelFraseSecreta = new JLabel("Frase secreta:");
         JTextField campoFraseSecreta = new JTextField(255);
-        painelCorpo2.add(campoFraseSecreta);
+        campoFraseSecreta.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
     
-        painelCorpo2.add(new JLabel("Grupo:"));
+        JLabel labelGrupo = new JLabel("Grupo:");
         JComboBox<String> comboBoxGrupo;
-    
         if (status == 0) {
             comboBoxGrupo = new JComboBox<>(new String[]{"Administrador"});
         } else {
             comboBoxGrupo = new JComboBox<>(new String[]{"Usuário", "Administrador"});
         }
-        painelCorpo2.add(comboBoxGrupo);
+        comboBoxGrupo.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do comboBox
     
-        painelCorpo2.add(new JLabel("Senha pessoal:"));
+        JLabel labelSenha = new JLabel("Senha pessoal:");
         JPasswordField campoSenha = new JPasswordField(10);
-        painelCorpo2.add(campoSenha);
+        campoSenha.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
     
-        painelCorpo2.add(new JLabel("Confirmação da senha pessoal:"));
+        JLabel labelConfirmacaoSenha = new JLabel("Confirmação da senha pessoal:");
         JPasswordField campoConfirmacaoSenha = new JPasswordField(10);
-        painelCorpo2.add(campoConfirmacaoSenha);
+        campoConfirmacaoSenha.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
+    
+        layoutCorpo.setHorizontalGroup(
+            layoutCorpo.createSequentialGroup()
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                    .addComponent(labelCertificado)
+                    .addComponent(labelChavePrivada)
+                    .addComponent(labelFraseSecreta)
+                    .addComponent(labelGrupo)
+                    .addComponent(labelSenha)
+                    .addComponent(labelConfirmacaoSenha))
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(campoCertificado)
+                    .addComponent(campoChavePrivada)
+                    .addComponent(campoFraseSecreta)
+                    .addComponent(comboBoxGrupo)
+                    .addComponent(campoSenha)
+                    .addComponent(campoConfirmacaoSenha))
+        );
+    
+        layoutCorpo.setVerticalGroup(
+            layoutCorpo.createSequentialGroup()
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelCertificado)
+                    .addComponent(campoCertificado))
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelChavePrivada)
+                    .addComponent(campoChavePrivada))
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelFraseSecreta)
+                    .addComponent(campoFraseSecreta))
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelGrupo)
+                    .addComponent(comboBoxGrupo))
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelSenha)
+                    .addComponent(campoSenha))
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelConfirmacaoSenha)
+                    .addComponent(campoConfirmacaoSenha))
+        );
     
         verticalBox.add(painelCorpo2);
         janelaPrincipal.add(verticalBox, BorderLayout.CENTER);
@@ -495,7 +564,7 @@ public class InterfaceCofreDigital {
             JButton botaoVoltar = new JButton("Voltar");
             painelBotoes.add(botaoVoltar);
             botaoVoltar.addActionListener(e -> {
-                database.insertIntoRegistros(6010, idUsuario, null);    // Botão voltar de cadastro para o menu principal pressionado por <login_name>.
+                database.insertIntoRegistros(6010, idUsuario, null); // Botão voltar de cadastro para o menu principal pressionado por <login_name>.
                 mostrarTelaMenu();
             });
         }
@@ -505,7 +574,7 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
     
         botaoCadastrar.addActionListener(e -> {
-            database.insertIntoRegistros(6002, idUsuario, null);    // Botão cadastrar pressionado por <login_name>.
+            database.insertIntoRegistros(6002, idUsuario, null); // Botão cadastrar pressionado por <login_name>.
             Object grupoSelecionado = comboBoxGrupo.getSelectedItem();
             int codigoGrupo = 0;
             if ("Administrador".equals(grupoSelecionado)) {
@@ -539,28 +608,25 @@ public class InterfaceCofreDigital {
                 }
             } else {
                 if (msg.equals("Caminho do arquivo do certificado digital inválido.")) {
-                    database.insertIntoRegistros(6004, idUsuario, null);   // Caminho do certificado digital inválido fornecido por <login_name>.
+                    database.insertIntoRegistros(6004, idUsuario, null); // Caminho do certificado digital inválido fornecido por <login_name>.
                 } else if (msg.equals("Caminho do arquivo da chave privada inválido.")) {
-                    database.insertIntoRegistros(6005, idUsuario, null);   // Chave privada verificada negativamente para <login_name> (caminho inválido).
+                    database.insertIntoRegistros(6005, idUsuario, null); // Chave privada verificada negativamente para <login_name> (caminho inválido).
                 } else if (msg.equals("Frase secreta inválida para a chave privada fornecida.")) {
-                    database.insertIntoRegistros(6006, idUsuario, null);   // Chave privada verificada negativamente para <login_name> (frase secreta inválida).
+                    database.insertIntoRegistros(6006, idUsuario, null); // Chave privada verificada negativamente para <login_name> (frase secreta inválida).
                 } else if (msg.equals("Assinatura digital inválida para a chave privada fornecida.")) {
-                    database.insertIntoRegistros(6007, idUsuario, null);   // Chave privada verificada negativamente para <login_name> (assinatura digital inválida).
+                    database.insertIntoRegistros(6007, idUsuario, null); // Chave privada verificada negativamente para <login_name> (assinatura digital inválida).
                 } else if (msg.equals("Senha e confirmação de senha não são iguais.")) {
-                    database.insertIntoRegistros(6003, idUsuario, null);    // Senha pessoal inválida fornecida por <login_name>.
+                    database.insertIntoRegistros(6003, idUsuario, null); // Senha pessoal inválida fornecida por <login_name>.
                 }
                 JOptionPane.showMessageDialog(janelaPrincipal, msg, "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-            }                                       
+            }
         });
-        
+    
         janelaPrincipal.pack();
-        //janelaPrincipal.setSize(540, 500); // ajuste os valores conforme necessário
-        //janelaPrincipal.setMinimumSize(new Dimension(540, 500)); // Define o tamanho mínimo da janela
-        //janelaPrincipal.setPreferredSize(new Dimension(540, 500)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }    
-
+    
     private boolean validarSenhaCadastro(char[] senha) {
         String senhaStr = new String(senha);
         if (senhaStr.length() < 8 || senhaStr.length() > 10) {
@@ -693,32 +759,80 @@ public class InterfaceCofreDigital {
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
-        JPanel painelCabecalho = new JPanel(new GridLayout(3, 1));
-        painelCabecalho.add(new JLabel("Login: " + emailUsuario, JLabel.CENTER));
-        painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
-        painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
+        JPanel painelCabecalho = new JPanel();
+        GroupLayout layoutCabecalho = new GroupLayout(painelCabecalho);
+        painelCabecalho.setLayout(layoutCabecalho);
+    
+        layoutCabecalho.setAutoCreateGaps(true);
+        layoutCabecalho.setAutoCreateContainerGaps(true);
+    
+        JLabel labelLogin = new JLabel("Login: " + emailUsuario, JLabel.CENTER);
+        JLabel labelGrupo = new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER);
+        JLabel labelNome = new JLabel("Nome: " + nomeUsuario, JLabel.CENTER);
+    
+        layoutCabecalho.setHorizontalGroup(
+            layoutCabecalho.createSequentialGroup()
+                .addGroup(layoutCabecalho.createParallelGroup(GroupLayout.Alignment.CENTER)
+                    .addComponent(labelLogin)
+                    .addComponent(labelGrupo)
+                    .addComponent(labelNome))
+        );
+    
+        layoutCabecalho.setVerticalGroup(
+            layoutCabecalho.createSequentialGroup()
+                .addComponent(labelLogin)
+                .addComponent(labelGrupo)
+                .addComponent(labelNome)
+        );
+    
         painelCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
     
         Box verticalBox = Box.createVerticalBox();
     
-        JPanel painelCorpo2 = new JPanel(new GridLayout(4, 2, 10, 10));
-        painelCorpo2.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        painelCorpo2.add(new JLabel("Caminho da Pasta Segura:"));
+        JPanel painelCorpo2 = new JPanel();
+        GroupLayout layoutCorpo = new GroupLayout(painelCorpo2);
+        painelCorpo2.setLayout(layoutCorpo);
+    
+        layoutCorpo.setAutoCreateGaps(true);
+        layoutCorpo.setAutoCreateContainerGaps(true);
+    
+        JLabel labelCaminhoPasta = new JLabel("Caminho da Pasta Segura:");
         JTextField caminhoPasta = new JTextField(255);
-        painelCorpo2.add(caminhoPasta);
+        caminhoPasta.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
     
-        painelCorpo2.add(new JLabel("Frase secreta:"));
+        JLabel labelFraseSecreta = new JLabel("Frase secreta:");
         JTextField fraseSecretaUsuario = new JTextField(255);
-        painelCorpo2.add(fraseSecretaUsuario);
+        fraseSecretaUsuario.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
     
-        painelCorpo2.add(new JLabel(""));
         JButton btnListar = new JButton("Listar");
-        painelCorpo2.add(btnListar);
-    
-        painelCorpo2.add(new JLabel(""));
         JButton btnVoltar = new JButton("Voltar");
-        painelCorpo2.add(btnVoltar);
+    
+        layoutCorpo.setHorizontalGroup(
+            layoutCorpo.createSequentialGroup()
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.TRAILING)
+                    .addComponent(labelCaminhoPasta)
+                    .addComponent(labelFraseSecreta))
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.LEADING)
+                    .addComponent(caminhoPasta)
+                    .addComponent(fraseSecretaUsuario)
+                    .addGroup(layoutCorpo.createSequentialGroup()
+                        .addComponent(btnListar)
+                        .addComponent(btnVoltar)))
+        );
+    
+        layoutCorpo.setVerticalGroup(
+            layoutCorpo.createSequentialGroup()
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelCaminhoPasta)
+                    .addComponent(caminhoPasta))
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(labelFraseSecreta)
+                    .addComponent(fraseSecretaUsuario))
+                .addGroup(layoutCorpo.createParallelGroup(GroupLayout.Alignment.BASELINE)
+                    .addComponent(btnListar)
+                    .addComponent(btnVoltar))
+        );
     
         verticalBox.add(painelCorpo2);
         janelaPrincipal.add(verticalBox, BorderLayout.CENTER);
@@ -748,9 +862,6 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(painelTabelaEBotoes, BorderLayout.SOUTH);
     
         janelaPrincipal.pack();
-        //janelaPrincipal.setSize(800, 600); // Define o tamanho fixo da janela
-        //janelaPrincipal.setMinimumSize(new Dimension(800, 600)); // Define o tamanho mínimo da janela
-        //janelaPrincipal.setPreferredSize(new Dimension(800, 600)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // Centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     
@@ -787,7 +898,7 @@ public class InterfaceCofreDigital {
                         if (resultRecupecacao.equals("OK")) {
                             database.insertIntoRegistros(7005, idUsuario, null);   // Arquivo de índice decriptado com sucesso para <login_name>.
                             database.insertIntoRegistros(7006, idUsuario, null);   // Arquivo de índice verificado (integridade e autenticidade) com sucesso para <login_name>.
-                                
+                                    
                             List<List<String>> resultado = recuperaArquivo.recuperaIndex();
     
                             // Preenche a tabela com os dados retornados
@@ -883,6 +994,7 @@ public class InterfaceCofreDigital {
             }
         });
     }    
+   
 
     private void mostrarTelaSaida() {
         database.insertIntoRegistros(8001, idUsuario, null);    // Tela de saída apresentada para <login_name>.
