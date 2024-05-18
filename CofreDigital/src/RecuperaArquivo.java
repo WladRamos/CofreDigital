@@ -33,10 +33,10 @@ public class RecuperaArquivo {
         }
         byte[] textoPlano = decryptArquivo(nomeArquivo);
         if(textoPlano == null) {
-            return "Erro na decriptação do arquivo: " + nomeArquivo;
+            return "Erro na decriptação do arquivo.";
         } else {
             if(!verificaAutentEIntegrArquivo(textoPlano, nomeArquivo)) {
-                return "Erro ao verificar integridade e autenticidade do arquivo: " + nomeArquivo;
+                return "Erro ao verificar integridade e autenticidade do arquivo.";
             }
         }
         if(nomeArquivo == "index") {

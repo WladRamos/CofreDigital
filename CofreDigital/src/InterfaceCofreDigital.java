@@ -79,7 +79,7 @@ public class InterfaceCofreDigital {
                 mostrarTelaNomeLogin();
             }
             else{
-                JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do admin incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do administrador incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
             }
         });
 
@@ -527,8 +527,6 @@ public class InterfaceCofreDigital {
                 JOptionPane.showMessageDialog(janelaPrincipal, "A senha deve ter de 8 a 10 dígitos.\nA senha não pode conter sequências de números repetidos.\nA senha deve ser formada apenas por digitos de 0 a 9.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            JOptionPane.showMessageDialog(janelaPrincipal, "Usuário cadastrado com sucesso!", "Cadastro", JOptionPane.INFORMATION_MESSAGE);
-            mostrarTelaMenu();
         });
     }
 
@@ -610,7 +608,7 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaConsulta() {
-        database.insertIntoRegistros(7001, idUsuario, null);   // Confirmação de dados rejeitada por <login_name>.
+        database.insertIntoRegistros(7001, idUsuario, null);   // Tela de consulta de arquivos secretos apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
@@ -680,47 +678,61 @@ public class InterfaceCofreDigital {
             try {
                 byte[] chaveSecredaAdminCript = database.getChavePrivadaCriptografadaDoUsuario(idAdministrador);
                 PrivateKey objPrivateKeyAdmin = GestorDeSeguranca.generatePrivateKeyFromBIN(chaveSecredaAdminCript, fraseSecretaAdmin);
-                if(objPrivateKeyAdmin != null){
+                if (objPrivateKeyAdmin != null) {
                     String certificadoAdminPem = database.getCertificadoDigitalDoUsuario(idAdministrador);
                     X509Certificate objCertificadoAdmin = GestorDeSeguranca.generateX509CertificateFromPEM(certificadoAdminPem);
                     PublicKey objPublicKeyAdmin = objCertificadoAdmin.getPublicKey();
 
                     byte[] chaveSecredaUserCript = database.getChavePrivadaCriptografadaDoUsuario(idUsuario);
                     PrivateKey objPrivateKeyUser = GestorDeSeguranca.generatePrivateKeyFromBIN(chaveSecredaUserCript, fraseSecretaUsuario.getText());
-                    if(objPrivateKeyUser != null){
+                    if (objPrivateKeyUser != null) {
                         String certificadoUserPem = database.getCertificadoDigitalDoUsuario(idUsuario);
                         X509Certificate objCertificadoUser = GestorDeSeguranca.generateX509CertificateFromPEM(certificadoUserPem);
                         PublicKey objPublicKeyUser = objCertificadoUser.getPublicKey();
 
                         if (grupoUsuario.equals("Usuário")) {
                             grupoUsuario = "usuario";
-                        }
-                        else{
+                        } else {
                             grupoUsuario = "administrador";
                         }
 
                         recuperaArquivo = new RecuperaArquivo(emailUsuario, grupoUsuario, caminhoPasta.getText(), objPublicKeyAdmin, objPrivateKeyAdmin, objPublicKeyUser, objPrivateKeyUser);
                         String resultRecupecacao = recuperaArquivo.verificaArquivos("index");
-                        if(resultRecupecacao.equals("OK")){
-                
+                        if (resultRecupecacao.equals("OK")) {
+                            database.insertIntoRegistros(7005, idUsuario, null);   // Arquivo de índice decriptado com sucesso para <login_name>.
+                            database.insertIntoRegistros(7006, idUsuario, null);   // Arquivo de índice verificado (integridade e autenticidade) com sucesso para <login_name>.
+                                
                             List<List<String>> resultado = recuperaArquivo.recuperaIndex();
-                
+
                             // Preenche a tabela com os dados retornados
                             model.setRowCount(0); // Limpa linhas antigas
                             for (List<String> rowData : resultado) {
                                 model.addRow(rowData.toArray());
                             }
+
+                            database.insertIntoRegistros(7009, idUsuario, null);   // Lista de arquivos presentes no índice apresentada para <login_name>.
                             tabelaArquivos.revalidate();
                             tabelaArquivos.repaint();
-                        }else{
-                            JOptionPane.showMessageDialog(janelaPrincipal, resultRecupecacao, "Erro", JOptionPane.ERROR_MESSAGE);
+                            
+                        } else {
+                            if (resultRecupecacao.equals("Caminho de pasta inválido.")) {
+                                database.insertIntoRegistros(7004, idUsuario, null);   // Caminho de pasta inválido fornecido por <login_name>.
+                                JOptionPane.showMessageDialog(janelaPrincipal, resultRecupecacao, "Erro", JOptionPane.ERROR_MESSAGE);
+                            } else if (resultRecupecacao.equals("Erro na decriptação do arquivo.")) {
+                                database.insertIntoRegistros(7007, idUsuario, null);   // Falha na decriptação do arquivo de índice para <login_name>.
+                                JOptionPane.showMessageDialog(janelaPrincipal, "Erro na decriptação do arquivo de índice.", "Erro", JOptionPane.ERROR_MESSAGE);
+                            } else if (resultRecupecacao.equals("Erro ao verificar integridade e autenticidade do arquivo.")) {
+                                database.insertIntoRegistros(7005, idUsuario, null);   // Arquivo de índice decriptado com sucesso para <login_name>.
+                                database.insertIntoRegistros(7008, idUsuario, null);   // Falha na verificação (integridade e autenticidade) do arquivo de índice para <login_name>.
+                                JOptionPane.showMessageDialog(janelaPrincipal, "Erro ao verificar integridade e autenticidade do arquivo de índice.", "Erro", JOptionPane.ERROR_MESSAGE);
+                            }
                         }
-                    }else{
+                    } else {
                         JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do usuário incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
                     }
                 }
-                else{
-                    JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do admin incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
+                else {
+                    JOptionPane.showMessageDialog(janelaPrincipal, "Chave Secreta do administrador incorreta", "Erro", JOptionPane.ERROR_MESSAGE);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -743,28 +755,41 @@ public class InterfaceCofreDigital {
                 String nome = (String) model.getValueAt(selectedRow, 1);
                 String dono = (String) model.getValueAt(selectedRow, 2);
 
-                try{
-                    if(dono.equals(emailUsuario)){
+                database.insertIntoRegistros(7010, idUsuario, nome);    // Arquivo <arq_name> selecionado por <login_name> para decriptação.
+
+                try {
+                    if (dono.equals(emailUsuario)) {
+                        database.insertIntoRegistros(7011, idUsuario, nome);    // Acesso permitido ao arquivo <arq_name> para <login_name>.
                         String resultRecupecacao2 = recuperaArquivo.verificaArquivos(nomeCodigo);
-                        if(resultRecupecacao2.equals("OK")){
+                        if (resultRecupecacao2.equals("OK")) {
+                            database.insertIntoRegistros(7013, idUsuario, nome);   // Arquivo <arq_name> decriptado com sucesso para <login_name>.
+                            database.insertIntoRegistros(7014, idUsuario, nome);   // Arquivo <arq_name> verificado (integridade e autenticidade) com sucesso para <login_name>.
+                        
                             recuperaArquivo.recuperaArquivosDocx(nome);
                             File f = new File(caminhoPasta.getText() + "/" + nome);
                             if(f.exists() && f.length() > 0){
-                                JOptionPane.showMessageDialog(janelaPrincipal, "Arquivo decriptado com sucesso", "Confirmação", JOptionPane.INFORMATION_MESSAGE);
-
-                            }else{
-                                JOptionPane.showMessageDialog(janelaPrincipal, "Erro ao decriptar o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+                                JOptionPane.showMessageDialog(janelaPrincipal, "Arquivo decriptado gerado com sucesso.", "Confirmação", JOptionPane.INFORMATION_MESSAGE);
+                            } else{
+                                JOptionPane.showMessageDialog(janelaPrincipal, "Erro ao gerar o arquivo decriptado.", "Erro", JOptionPane.ERROR_MESSAGE);
                             }
-                        }else{
-                            JOptionPane.showMessageDialog(janelaPrincipal, resultRecupecacao2, "Erro", JOptionPane.ERROR_MESSAGE);
+                        } else {
+                            if (resultRecupecacao2.equals("Caminho de pasta inválido.") || resultRecupecacao2.equals("Erro na decriptação do arquivo.")) {
+                                database.insertIntoRegistros(7015, idUsuario, nome);   // Falha na decriptação do arquivo <arq_name> para <login_name>.
+                                JOptionPane.showMessageDialog(janelaPrincipal, "Erro na decriptação do arquivo: " + nome, "Erro", JOptionPane.ERROR_MESSAGE);
+                            } else if (resultRecupecacao2.equals("Erro ao verificar integridade e autenticidade do arquivo.")) {
+                                database.insertIntoRegistros(7013, idUsuario, nome);   // Arquivo <arq_name> decriptado com sucesso para <login_name>.
+                                database.insertIntoRegistros(7016, idUsuario, nome);   // Falha na verificação (integridade e autenticidade) do arquivo <arq_name> para <login_name>.
+                                JOptionPane.showMessageDialog(janelaPrincipal, "Erro ao verificar integridade e autenticidade do arquivo: " + nome, "Erro", JOptionPane.ERROR_MESSAGE);
+                            }
                         }
                     }
-                    else{
-                        JOptionPane.showMessageDialog(janelaPrincipal, "Somente o dono pode decriptar o arquivo", "Erro", JOptionPane.ERROR_MESSAGE);
+                    else {
+                        database.insertIntoRegistros(7012, idUsuario, nome);    // Acesso negado ao arquivo <arq_name> para <login_name>.
+                        JOptionPane.showMessageDialog(janelaPrincipal, "Somente o dono pode decriptar o arquivo selecionado.", "Erro", JOptionPane.ERROR_MESSAGE);
                     }
                     
                 }
-                catch (Exception x){
+                catch (Exception x) {
                     x.printStackTrace();
                 }
                 
@@ -775,6 +800,7 @@ public class InterfaceCofreDigital {
     }
 
     private void mostrarTelaSaida() {
+        database.insertIntoRegistros(8001, idUsuario, null);    // Tela de saída apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
@@ -811,8 +837,8 @@ public class InterfaceCofreDigital {
     
         // Definindo ações para os botões
         botaoEncerrarSessao.addActionListener(e -> {
-            database.insertIntoRegistros(1004, idUsuario, null);    // Sessão encerrada para <login_name>.
-            
+            database.insertIntoRegistros(8002, idUsuario, null);    // Botão encerrar sessão pressionado por <login_name>.
+    
             // Reseta todas as variáveis do usuário
             autenticacao = null;
             campoTextoTOTP = null;
@@ -825,16 +851,25 @@ public class InterfaceCofreDigital {
             nomeUsuario = null;
             qtdAcessosUsuario = null;
             emailUsuario = null;
+
+            database.insertIntoRegistros(1004, idUsuario, null);    // Sessão encerrada para <login_name>.
+            
             idUsuario = -1;
 
             // Redireciona para a tela de login
             mostrarTelaNomeLogin();        
         });
+
         botaoEncerrarSistema.addActionListener(e -> {
+            database.insertIntoRegistros(8003, idUsuario, null);    // Botão encerrar sistema pressionado por <login_name>.
             database.insertIntoRegistros(1002, -1, null);   // Sistema encerrado.
             System.exit(0);  
         });
-        botaoVoltar.addActionListener(e -> mostrarTelaMenu());
+
+        botaoVoltar.addActionListener(e -> {
+            database.insertIntoRegistros(8004, idUsuario, null);    // Botão voltar de sair para o menu principal pressionado por <login_name>.
+            mostrarTelaMenu();
+        });
     
         janelaPrincipal.pack();
         janelaPrincipal.setVisible(true);
