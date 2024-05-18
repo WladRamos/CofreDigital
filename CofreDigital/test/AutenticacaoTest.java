@@ -32,6 +32,7 @@ public class AutenticacaoTest {
             
             cadastro.verificaEntradasDoCadastro();
             cadastro.getDetalhesDoCertificadoDigital();
+            cadastro.cadastraUsuario();
             uid = database.getUsuarioIfExists("user02@inf1416.puc-rio.br");
         }
         
