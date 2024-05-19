@@ -992,21 +992,22 @@ public class InterfaceCofreDigital {
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
-        // Cabeçalho centralizado
+        // Cabeçalho centralizado com bordas
         JPanel painelCabecalho = new JPanel(new GridLayout(3, 1));
         painelCabecalho.add(new JLabel("Login: " + emailUsuario, JLabel.CENTER));
         painelCabecalho.add(new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER));
         painelCabecalho.add(new JLabel("Nome: " + nomeUsuario, JLabel.CENTER));
-        painelCabecalho.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+        painelCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
     
         // Corpo principal
         JPanel painelCorpoPrincipal = new JPanel();
         painelCorpoPrincipal.setLayout(new BoxLayout(painelCorpoPrincipal, BoxLayout.Y_AXIS));
+        painelCorpoPrincipal.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
     
         // Corpo1
         JPanel painelCorpo1 = new JPanel();
-        painelCorpo1.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 5));
+        painelCorpo1.setLayout(new FlowLayout(FlowLayout.LEFT, 10, 5));
         painelCorpo1.add(new JLabel("Total de acessos do usuário: " + qtdAcessosUsuario));
         painelCorpo1.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelCorpoPrincipal.add(painelCorpo1);
@@ -1014,28 +1015,29 @@ public class InterfaceCofreDigital {
         // Corpo2
         JPanel painelCorpo2 = new JPanel();
         painelCorpo2.setLayout(new BoxLayout(painelCorpo2, BoxLayout.Y_AXIS));
-        JLabel labelSaida = new JLabel("Saída do sistema:");
+        JLabel labelSaida = new JLabel("   Saída do sistema:");
         labelSaida.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JLabel labelInstrucoes = new JLabel("Pressione o botão Encerrar Sessão ou o botão Encerrar Sistema para confirmar.", JLabel.LEFT);
+        JLabel labelInstrucoes = new JLabel("   Pressione o botão Encerrar Sessão ou o botão Encerrar Sistema para confirmar.", JLabel.LEFT);
         labelInstrucoes.setAlignmentX(Component.LEFT_ALIGNMENT);
         painelCorpo2.add(labelSaida);
         painelCorpo2.add(labelInstrucoes);
         painelCorpo2.setAlignmentX(Component.LEFT_ALIGNMENT);
+        painelCorpo2.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0));
         painelCorpoPrincipal.add(painelCorpo2);
     
         janelaPrincipal.add(painelCorpoPrincipal, BorderLayout.CENTER);
     
         // Painel de botões na parte inferior
         JPanel painelBotoes = new JPanel();
-        painelBotoes.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+        painelBotoes.setLayout(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton botaoEncerrarSessao = new JButton("Encerrar Sessão");
         JButton botaoEncerrarSistema = new JButton("Encerrar Sistema");
-        JButton botaoVoltar = new JButton("Voltar de Sair para o Menu Principal");
+        JButton botaoVoltar = new JButton("Voltar ao Menu Principal");
     
         painelBotoes.add(botaoEncerrarSessao);
         painelBotoes.add(botaoEncerrarSistema);
         painelBotoes.add(botaoVoltar);
-    
+        painelBotoes.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
     
         // Definindo ações para os botões
@@ -1073,13 +1075,11 @@ public class InterfaceCofreDigital {
             database.insertIntoRegistros(8004, idUsuario, null);    // Botão voltar de sair para o menu principal pressionado por <login_name>.
             mostrarTelaMenu();
         });
-        
+    
         janelaPrincipal.pack();
-        //janelaPrincipal.setSize(550, 200); // Define o tamanho fixo da janela
-        //janelaPrincipal.setMinimumSize(new Dimension(550, 200)); // Define o tamanho mínimo da janela
-        //janelaPrincipal.setPreferredSize(new Dimension(550, 200)); // Define o tamanho preferido da janela
         janelaPrincipal.setLocationRelativeTo(null); // Centraliza a janela na tela
         janelaPrincipal.setVisible(true);
     }
+    
                
 }
