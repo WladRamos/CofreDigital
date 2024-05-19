@@ -621,13 +621,13 @@ public class InterfaceCofreDigital {
         leftAlignedPanel.setLayout(new BoxLayout(leftAlignedPanel, BoxLayout.Y_AXIS));
         leftAlignedPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     
-        leftAlignedPanel.add(new JLabel("Versão: " + info.get("versao")));
-        leftAlignedPanel.add(new JLabel("Série: " + info.get("serie")));
-        leftAlignedPanel.add(new JLabel("Validade: " + info.get("validade")));
-        leftAlignedPanel.add(new JLabel("Tipo de Assinatura: " + info.get("tipo_assinatura")));
-        leftAlignedPanel.add(new JLabel("Emissor: " + info.get("emissor")));
-        leftAlignedPanel.add(new JLabel("Sujeito: " + info.get("sujeito")));
-        leftAlignedPanel.add(new JLabel("Email: " + info.get("email")));
+        leftAlignedPanel.add(new JLabel("  Versão: " + info.get("versao")));
+        leftAlignedPanel.add(new JLabel("  Série: " + info.get("serie")));
+        leftAlignedPanel.add(new JLabel("  Validade: " + info.get("validade")));
+        leftAlignedPanel.add(new JLabel("  Tipo de Assinatura: " + info.get("tipo_assinatura")));
+        leftAlignedPanel.add(new JLabel("  Emissor: " + info.get("emissor")));
+        leftAlignedPanel.add(new JLabel("  Sujeito: " + info.get("sujeito")));
+        leftAlignedPanel.add(new JLabel("  Email: " + info.get("email")));
     
         panel.add(leftAlignedPanel, BorderLayout.CENTER);
     
@@ -662,7 +662,7 @@ public class InterfaceCofreDigital {
     
         // Adicionar o painel ao frame
         frame.add(panel);
-        frame.setSize(650, 200); // Define o tamanho fixo
+        frame.setSize(660, 200); // Define o tamanho fixo
         frame.setLocationRelativeTo(null); // Centraliza a janela na tela
         frame.setVisible(true);
     }        
@@ -679,11 +679,11 @@ public class InterfaceCofreDigital {
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
         textPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     
-        textPanel.add(new JLabel("Insira o código a seguir como chave de configuração no seu Google Authenticator: "));
+        textPanel.add(new JLabel("  Insira o código a seguir como chave de configuração no seu Google Authenticator: "));
         textPanel.add(Box.createVerticalStrut(10)); // Adicionar espaço vertical
-        textPanel.add(new JLabel(codigoTOTP));
+        textPanel.add(new JLabel("  " + codigoTOTP));
         textPanel.add(Box.createVerticalStrut(10)); // Adicionar espaço vertical
-        textPanel.add(new JLabel("Ou utilize a opção Ler QR code: "));
+        textPanel.add(new JLabel("  Ou utilize a opção Ler QR code: "));
         textPanel.add(Box.createVerticalStrut(10)); // Adicionar espaço vertical
     
         panel.add(textPanel, BorderLayout.NORTH);
@@ -711,7 +711,7 @@ public class InterfaceCofreDigital {
     
         // Adicionar o painel ao frame
         frame.add(panel);
-        frame.setSize(500, 400); // Define o tamanho fixo
+        frame.setSize(510, 400); // Define o tamanho fixo
         frame.setLocationRelativeTo(null); // Centraliza a janela na tela
         frame.setVisible(true);
     }    
