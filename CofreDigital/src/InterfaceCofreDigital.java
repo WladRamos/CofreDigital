@@ -54,13 +54,12 @@ public class InterfaceCofreDigital {
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
-        // Criação de um painel intermediário para o cabeçalho e campo de frase secreta
         JPanel painelSuperior = new JPanel(new BorderLayout());
         JLabel rotuloCabecalho = new JLabel("Cofre Digital - Autenticação", JLabel.CENTER);
         rotuloCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 5, 10));
         painelSuperior.add(rotuloCabecalho, BorderLayout.NORTH);
     
-        JPanel painelFraseSecreta = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5)); // Centraliza os componentes com menos margens
+        JPanel painelFraseSecreta = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
         JLabel labelFraseSecreta = new JLabel("Frase Secreta do Administrador:");
         JTextField campoFraseSecretaAdmin = new JTextField(20);
         painelFraseSecreta.add(labelFraseSecreta);
@@ -68,7 +67,6 @@ public class InterfaceCofreDigital {
         painelFraseSecreta.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         painelSuperior.add(painelFraseSecreta, BorderLayout.CENTER);
     
-        // Adiciona o painel superior ao BorderLayout.CENTER da janela principal
         janelaPrincipal.add(painelSuperior, BorderLayout.CENTER);
     
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 5));
@@ -93,7 +91,7 @@ public class InterfaceCofreDigital {
         });
     
         janelaPrincipal.pack();
-        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
+        janelaPrincipal.setLocationRelativeTo(null);
         janelaPrincipal.setVisible(true);
     }   
 
@@ -160,9 +158,8 @@ public class InterfaceCofreDigital {
     
         botaoLimpar.addActionListener(e -> campoTextoEmail.setText(""));
     
-        // Definindo um tamanho fixo para a janela
         janelaPrincipal.pack();
-        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
+        janelaPrincipal.setLocationRelativeTo(null);
         janelaPrincipal.setVisible(true);
     }    
 
@@ -233,7 +230,7 @@ public class InterfaceCofreDigital {
         });
         
         janelaPrincipal.pack();
-        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
+        janelaPrincipal.setLocationRelativeTo(null);
         janelaPrincipal.setVisible(true);
     }
     
@@ -384,7 +381,7 @@ public class InterfaceCofreDigital {
         });
         
         janelaPrincipal.pack();
-        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
+        janelaPrincipal.setLocationRelativeTo(null);
         janelaPrincipal.setVisible(true);
     }
     
@@ -401,7 +398,6 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(labelTituloTela, BorderLayout.NORTH);
     
         if (status != 0) {
-            // Criação do painel de cabeçalho com GridBagLayout para centralização
             JPanel painelCabecalho = new JPanel(new GridBagLayout());
             GridBagConstraints gbc = new GridBagConstraints();
             gbc.gridx = 0;
@@ -437,15 +433,15 @@ public class InterfaceCofreDigital {
     
         JLabel labelCertificado = new JLabel("Caminho do arquivo do certificado digital:");
         JTextField campoCertificado = new JTextField(255);
-        campoCertificado.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
+        campoCertificado.setMaximumSize(new Dimension(300, 30)); 
     
         JLabel labelChavePrivada = new JLabel("Caminho do arquivo da chave privada:");
         JTextField campoChavePrivada = new JTextField(255);
-        campoChavePrivada.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
+        campoChavePrivada.setMaximumSize(new Dimension(300, 30)); 
     
         JLabel labelFraseSecreta = new JLabel("Frase secreta:");
         JTextField campoFraseSecreta = new JTextField(255);
-        campoFraseSecreta.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
+        campoFraseSecreta.setMaximumSize(new Dimension(300, 30)); 
     
         JLabel labelGrupo = new JLabel("Grupo:");
         JComboBox<String> comboBoxGrupo;
@@ -454,15 +450,15 @@ public class InterfaceCofreDigital {
         } else {
             comboBoxGrupo = new JComboBox<>(new String[]{"Usuário", "Administrador"});
         }
-        comboBoxGrupo.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do comboBox
+        comboBoxGrupo.setMaximumSize(new Dimension(300, 30));
     
         JLabel labelSenha = new JLabel("Senha pessoal:");
         JPasswordField campoSenha = new JPasswordField(10);
-        campoSenha.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
+        campoSenha.setMaximumSize(new Dimension(300, 30)); 
     
         JLabel labelConfirmacaoSenha = new JLabel("Confirmação da senha pessoal:");
         JPasswordField campoConfirmacaoSenha = new JPasswordField(10);
-        campoConfirmacaoSenha.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
+        campoConfirmacaoSenha.setMaximumSize(new Dimension(300, 30)); 
     
         layoutCorpo.setHorizontalGroup(
             layoutCorpo.createSequentialGroup()
@@ -576,7 +572,7 @@ public class InterfaceCofreDigital {
         });
     
         janelaPrincipal.pack();
-        janelaPrincipal.setLocationRelativeTo(null); // centraliza a janela na tela
+        janelaPrincipal.setLocationRelativeTo(null);
         janelaPrincipal.setVisible(true);
     }    
     
@@ -609,12 +605,10 @@ public class InterfaceCofreDigital {
 
     private void mostrarPopUpConfirmacao(Cadastro cadastro, HashMap<String, String> info, int statusTipoCadastro, String fraseSecreta) {
         JFrame frame = new JFrame("Confirmação de Cadastro");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Permite que a janela pop-up seja fechada sem encerrar o programa
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     
-        // Criar o JPanel que conterá todos os componentes
         JPanel panel = new JPanel(new BorderLayout());
     
-        // Criar um JPanel intermediário para alinhar à esquerda
         JPanel leftAlignedPanel = new JPanel();
         leftAlignedPanel.setLayout(new BoxLayout(leftAlignedPanel, BoxLayout.Y_AXIS));
         leftAlignedPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -629,7 +623,6 @@ public class InterfaceCofreDigital {
     
         panel.add(leftAlignedPanel, BorderLayout.CENTER);
     
-        // Criar os botões
         JButton confirmButton = new JButton("Confirmar");
         confirmButton.addActionListener(e -> {
             database.insertIntoRegistros(6008, idUsuario, null);    // Confirmação de dados aceita por <login_name>.
@@ -644,55 +637,49 @@ public class InterfaceCofreDigital {
                 idAdministrador = database.getUsuarioIfExists(info.get("email"));
             }
             mostrarPopUpCodigoTOTP(codigoTOTP, QRcode, statusTipoCadastro);
-            frame.dispose(); // Fecha a janela pop-up
+            frame.dispose();
         });
     
         JButton cancelButton = new JButton("Cancelar");
         cancelButton.addActionListener(e -> {
             database.insertIntoRegistros(6009, idUsuario, null);    // Confirmação de dados rejeitada por <login_name>.
-            frame.dispose(); // Fecha a janela pop-up
+            frame.dispose();
         });
     
-        // Adicionar botões ao painel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
         buttonPanel.add(confirmButton);
         buttonPanel.add(cancelButton);
         panel.add(buttonPanel, BorderLayout.SOUTH);
     
-        // Adicionar o painel ao frame
         frame.add(panel);
-        frame.setSize(660, 200); // Define o tamanho fixo
-        frame.setLocationRelativeTo(null); // Centraliza a janela na tela
+        frame.setSize(660, 200);
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }        
 
     private void mostrarPopUpCodigoTOTP(String codigoTOTP, BufferedImage QRcode, int statusTipoCadastro) {
         JFrame frame = new JFrame("Código TOTP");
-        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // Permite que a janela pop-up seja fechada sem encerrar o programa
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     
-        // Criar o JPanel que conterá todos os componentes
         JPanel panel = new JPanel(new BorderLayout());
     
-        // Criar um JPanel intermediário para alinhar os textos à esquerda
         JPanel textPanel = new JPanel();
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
         textPanel.setAlignmentX(Component.LEFT_ALIGNMENT);
     
         textPanel.add(new JLabel("  Insira o código a seguir como chave de configuração no seu Google Authenticator: "));
-        textPanel.add(Box.createVerticalStrut(10)); // Adicionar espaço vertical
+        textPanel.add(Box.createVerticalStrut(10)); 
         textPanel.add(new JLabel("  " + codigoTOTP));
-        textPanel.add(Box.createVerticalStrut(10)); // Adicionar espaço vertical
+        textPanel.add(Box.createVerticalStrut(10)); 
         textPanel.add(new JLabel("  Ou utilize a opção Ler QR code: "));
-        textPanel.add(Box.createVerticalStrut(10)); // Adicionar espaço vertical
+        textPanel.add(Box.createVerticalStrut(10)); 
     
         panel.add(textPanel, BorderLayout.NORTH);
     
-        // Adicionar a imagem do QR code centralizada
         JLabel qrCodeLabel = new JLabel(new ImageIcon(QRcode));
         qrCodeLabel.setHorizontalAlignment(JLabel.CENTER);
         panel.add(qrCodeLabel, BorderLayout.CENTER);
     
-        // Criar o botão
         JButton confirmButton = new JButton("Confirmar");
         confirmButton.addActionListener(e -> {
             if (statusTipoCadastro == 0) {
@@ -700,18 +687,16 @@ public class InterfaceCofreDigital {
             } else {
                 mostrarTelaCadastro(statusTipoCadastro);
             }
-            frame.dispose(); // Fecha a janela pop-up
+            frame.dispose();
         });
     
-        // Adicionar o botão centralizado
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(confirmButton);
         panel.add(buttonPanel, BorderLayout.SOUTH);
     
-        // Adicionar o painel ao frame
         frame.add(panel);
-        frame.setSize(510, 400); // Define o tamanho fixo
-        frame.setLocationRelativeTo(null); // Centraliza a janela na tela
+        frame.setSize(510, 400); 
+        frame.setLocationRelativeTo(null); 
         frame.setVisible(true);
     }    
 
@@ -720,7 +705,6 @@ public class InterfaceCofreDigital {
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
-        // Criação do painel de cabeçalho com GridBagLayout para centralização
         JPanel painelCabecalho = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -756,11 +740,11 @@ public class InterfaceCofreDigital {
     
         JLabel labelCaminhoPasta = new JLabel("Caminho da Pasta Segura:");
         JTextField caminhoPasta = new JTextField(255);
-        caminhoPasta.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
+        caminhoPasta.setMaximumSize(new Dimension(300, 30)); 
     
         JLabel labelFraseSecreta = new JLabel("Frase secreta:");
         JTextField fraseSecretaUsuario = new JTextField(255);
-        fraseSecretaUsuario.setMaximumSize(new Dimension(300, 30)); // Define o tamanho máximo do campo
+        fraseSecretaUsuario.setMaximumSize(new Dimension(300, 30)); 
     
         JButton btnListar = new JButton("Listar");
         JButton btnVoltar = new JButton("Voltar");
@@ -794,7 +778,6 @@ public class InterfaceCofreDigital {
         verticalBox.add(painelCorpo2);
         janelaPrincipal.add(verticalBox, BorderLayout.CENTER);
     
-        // Configuração da tabela
         DefaultTableModel model = new DefaultTableModel(null, new String[]{"Nome Código", "Nome", "Dono", "Grupo"}) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -805,21 +788,19 @@ public class InterfaceCofreDigital {
         JScrollPane scrollPane = new JScrollPane(tabelaArquivos);
         scrollPane.setPreferredSize(new Dimension(600, 200));
     
-        // Painel para a tabela e o botão "Selecionar"
         JPanel painelTabelaEBotoes = new JPanel(new BorderLayout());
         painelTabelaEBotoes.add(scrollPane, BorderLayout.CENTER);
     
-        // Painel para o botão "Selecionar"
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         JButton btnSelecionar = new JButton("Decriptar");
-        btnSelecionar.setEnabled(false); // Inicialmente desabilitado
+        btnSelecionar.setEnabled(false);
         painelBotoes.add(btnSelecionar);
         painelTabelaEBotoes.add(painelBotoes, BorderLayout.SOUTH);
     
         janelaPrincipal.add(painelTabelaEBotoes, BorderLayout.SOUTH);
     
         janelaPrincipal.pack();
-        janelaPrincipal.setLocationRelativeTo(null); // Centraliza a janela na tela
+        janelaPrincipal.setLocationRelativeTo(null); 
         janelaPrincipal.setVisible(true);
     
         btnVoltar.addActionListener(e -> {
@@ -859,8 +840,7 @@ public class InterfaceCofreDigital {
                                     
                             List<List<String>> resultado = recuperaArquivo.recuperaIndex();
     
-                            // Preenche a tabela com os dados retornados
-                            model.setRowCount(0); // Limpa linhas antigas
+                            model.setRowCount(0);
                             for (List<String> rowData : resultado) {
                                 model.addRow(rowData.toArray());
                             }
@@ -893,15 +873,13 @@ public class InterfaceCofreDigital {
             }
         });
     
-        // Adiciona um ListSelectionListener para rastrear a linha selecionada
         tabelaArquivos.getSelectionModel().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 int selectedRow = tabelaArquivos.getSelectedRow();
-                btnSelecionar.setEnabled(selectedRow != -1); // Habilita o botão se uma linha estiver selecionada
+                btnSelecionar.setEnabled(selectedRow != -1);
             }
         });
     
-        // Adiciona um ActionListener ao botão "Selecionar"
         btnSelecionar.addActionListener(e -> {
             int selectedRow = tabelaArquivos.getSelectedRow();
             if (selectedRow != -1) {
@@ -1006,11 +984,9 @@ public class InterfaceCofreDigital {
         painelBotoes.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         janelaPrincipal.add(painelBotoes, BorderLayout.SOUTH);
     
-        // Definindo ações para os botões
         botaoEncerrarSessao.addActionListener(e -> {
             database.insertIntoRegistros(8002, idUsuario, null);    // Botão encerrar sessão pressionado por <login_name>.
     
-            // Reseta todas as variáveis do usuário
             autenticacao = null;
             campoTextoTOTP = null;
             campoSenha = null;
@@ -1028,7 +1004,6 @@ public class InterfaceCofreDigital {
     
             idUsuario = -1;
     
-            // Redireciona para a tela de login
             mostrarTelaNomeLogin();
         });
     
@@ -1044,7 +1019,7 @@ public class InterfaceCofreDigital {
         });
     
         janelaPrincipal.pack();
-        janelaPrincipal.setLocationRelativeTo(null); // Centraliza a janela na tela
+        janelaPrincipal.setLocationRelativeTo(null); 
         janelaPrincipal.setVisible(true);
     }
     
