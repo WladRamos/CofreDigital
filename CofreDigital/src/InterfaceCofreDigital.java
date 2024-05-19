@@ -405,36 +405,25 @@ public class InterfaceCofreDigital {
         janelaPrincipal.add(labelTituloTela, BorderLayout.NORTH);
     
         if (status != 0) {
-            JPanel painelCabecalho = new JPanel();
-            GroupLayout layoutCabecalho = new GroupLayout(painelCabecalho);
-            painelCabecalho.setLayout(layoutCabecalho);
-    
-            layoutCabecalho.setAutoCreateGaps(true);
-            layoutCabecalho.setAutoCreateContainerGaps(true);
-    
-            JLabel labelLogin = new JLabel("Login: " + emailUsuario, JLabel.CENTER);
-            JLabel labelGrupo = new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER);
-            JLabel labelNome = new JLabel("Nome: " + nomeUsuario, JLabel.CENTER);
-    
-            layoutCabecalho.setHorizontalGroup(
-                layoutCabecalho.createSequentialGroup()
-                    .addGroup(layoutCabecalho.createParallelGroup(GroupLayout.Alignment.CENTER)
-                        .addComponent(labelLogin)
-                        .addComponent(labelGrupo)
-                        .addComponent(labelNome))
-            );
-    
-            layoutCabecalho.setVerticalGroup(
-                layoutCabecalho.createSequentialGroup()
-                    .addComponent(labelLogin)
-                    .addComponent(labelGrupo)
-                    .addComponent(labelNome)
-            );
-    
-            painelCabecalho.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
-            janelaPrincipal.add(painelCabecalho, BorderLayout.CENTER);
-        } else {
-            janelaPrincipal.add(labelTituloTela, BorderLayout.NORTH);
+            // Criação do painel de cabeçalho com GridBagLayout para centralização
+            JPanel painelCabecalho = new JPanel(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.anchor = GridBagConstraints.CENTER;
+        
+            JLabel labelLogin = new JLabel("Login: " + emailUsuario);
+            JLabel labelGrupo = new JLabel("Grupo: " + grupoUsuario);
+            JLabel labelNome = new JLabel("Nome: " + nomeUsuario);
+
+            painelCabecalho.add(labelLogin, gbc);
+            gbc.gridy++;
+            painelCabecalho.add(labelGrupo, gbc);
+            gbc.gridy++;
+            painelCabecalho.add(labelNome, gbc);
+        
+            painelCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
         }
     
         Box verticalBox = Box.createVerticalBox();
