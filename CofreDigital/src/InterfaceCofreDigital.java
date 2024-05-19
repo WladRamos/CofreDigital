@@ -545,17 +545,19 @@ public class InterfaceCofreDigital {
     
             String msg = cadastro.verificaEntradasDoCadastro();
             if (msg.equals("Entradas verificadas")) {
-                try {
-                    HashMap<String, String> info = cadastro.getDetalhesDoCertificadoDigital();
-                    boolean loginNameLivre = (database.getUsuarioIfExists(info.get("email")) == -1);
-                    if (loginNameLivre) {
-                        mostrarPopUpConfirmacao(cadastro, info, status, campoFraseSecreta.getText());
-                    } else {
-                        JOptionPane.showMessageDialog(janelaPrincipal, "O email presente no certificado digital fornecido já pertence a um usuário cadastrado.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+                if(validarSenhaCadastro(campoSenha.getPassword())){
+                    try {
+                        HashMap<String, String> info = cadastro.getDetalhesDoCertificadoDigital();
+                        boolean loginNameLivre = (database.getUsuarioIfExists(info.get("email")) == -1);
+                        if (loginNameLivre) {
+                            mostrarPopUpConfirmacao(cadastro, info, status, campoFraseSecreta.getText());
+                        } else {
+                            JOptionPane.showMessageDialog(janelaPrincipal, "O email presente no certificado digital fornecido já pertence a um usuário cadastrado.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+                        }
+                    } catch (Exception x) {
+                        JOptionPane.showMessageDialog(janelaPrincipal, "Falha ao extrair as informações do certificado digital.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
+                        x.printStackTrace();
                     }
-                } catch (Exception x) {
-                    JOptionPane.showMessageDialog(janelaPrincipal, "Falha ao extrair as informações do certificado digital.", "Erro de Validação", JOptionPane.ERROR_MESSAGE);
-                    x.printStackTrace();
                 }
             } else {
                 if (msg.equals("Caminho do arquivo do certificado digital inválido.")) {
@@ -639,6 +641,7 @@ public class InterfaceCofreDigital {
             BufferedImage QRcode = GestorDeSeguranca.generateQRcodeDaChaveSecreta(codigoTOTP, info.get("email"));
             if(statusTipoCadastro == 0){
                 fraseSecretaAdmin = fraseSecreta;
+                idAdministrador = database.getUsuarioIfExists(info.get("email"));
             }
             mostrarPopUpCodigoTOTP(codigoTOTP, QRcode, statusTipoCadastro);
             frame.dispose(); // Fecha a janela pop-up
