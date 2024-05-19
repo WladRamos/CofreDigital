@@ -759,31 +759,22 @@ public class InterfaceCofreDigital {
         janelaPrincipal.getContentPane().removeAll();
         janelaPrincipal.setLayout(new BorderLayout());
     
-        JPanel painelCabecalho = new JPanel();
-        GroupLayout layoutCabecalho = new GroupLayout(painelCabecalho);
-        painelCabecalho.setLayout(layoutCabecalho);
+        // Criação do painel de cabeçalho com GridBagLayout para centralização
+        JPanel painelCabecalho = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.anchor = GridBagConstraints.CENTER;
     
-        layoutCabecalho.setAutoCreateGaps(true);
-        layoutCabecalho.setAutoCreateContainerGaps(true);
+        JLabel labelLogin = new JLabel("Login: " + emailUsuario);
+        JLabel labelGrupo = new JLabel("Grupo: " + grupoUsuario);
+        JLabel labelNome = new JLabel("Nome: " + nomeUsuario);
     
-        JLabel labelLogin = new JLabel("Login: " + emailUsuario, JLabel.CENTER);
-        JLabel labelGrupo = new JLabel("Grupo: " + grupoUsuario, JLabel.CENTER);
-        JLabel labelNome = new JLabel("Nome: " + nomeUsuario, JLabel.CENTER);
-    
-        layoutCabecalho.setHorizontalGroup(
-            layoutCabecalho.createSequentialGroup()
-                .addGroup(layoutCabecalho.createParallelGroup(GroupLayout.Alignment.CENTER)
-                    .addComponent(labelLogin)
-                    .addComponent(labelGrupo)
-                    .addComponent(labelNome))
-        );
-    
-        layoutCabecalho.setVerticalGroup(
-            layoutCabecalho.createSequentialGroup()
-                .addComponent(labelLogin)
-                .addComponent(labelGrupo)
-                .addComponent(labelNome)
-        );
+        painelCabecalho.add(labelLogin, gbc);
+        gbc.gridy++;
+        painelCabecalho.add(labelGrupo, gbc);
+        gbc.gridy++;
+        painelCabecalho.add(labelNome, gbc);
     
         painelCabecalho.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         janelaPrincipal.add(painelCabecalho, BorderLayout.NORTH);
@@ -854,7 +845,7 @@ public class InterfaceCofreDigital {
     
         // Painel para o botão "Selecionar"
         JPanel painelBotoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
-        JButton btnSelecionar = new JButton("Selecionar");
+        JButton btnSelecionar = new JButton("Decriptar");
         btnSelecionar.setEnabled(false); // Inicialmente desabilitado
         painelBotoes.add(btnSelecionar);
         painelTabelaEBotoes.add(painelBotoes, BorderLayout.SOUTH);
@@ -886,14 +877,15 @@ public class InterfaceCofreDigital {
                         String certificadoUserPem = database.getCertificadoDigitalDoUsuario(idUsuario);
                         X509Certificate objCertificadoUser = GestorDeSeguranca.generateX509CertificateFromPEM(certificadoUserPem);
                         PublicKey objPublicKeyUser = objCertificadoUser.getPublicKey();
-    
+                        
+                        String auxGrupoUsuario;
                         if (grupoUsuario.equals("Usuário")) {
-                            grupoUsuario = "usuario";
+                            auxGrupoUsuario = "usuario";
                         } else {
-                            grupoUsuario = "administrador";
+                            auxGrupoUsuario = "administrador";
                         }
     
-                        recuperaArquivo = new RecuperaArquivo(emailUsuario, grupoUsuario, caminhoPasta.getText(), objPublicKeyAdmin, objPrivateKeyAdmin, objPublicKeyUser, objPrivateKeyUser);
+                        recuperaArquivo = new RecuperaArquivo(emailUsuario, auxGrupoUsuario, caminhoPasta.getText(), objPublicKeyAdmin, objPrivateKeyAdmin, objPublicKeyUser, objPrivateKeyUser);
                         String resultRecupecacao = recuperaArquivo.verificaArquivos("index");
                         if (resultRecupecacao.equals("OK")) {
                             database.insertIntoRegistros(7005, idUsuario, null);   // Arquivo de índice decriptado com sucesso para <login_name>.
@@ -993,9 +985,8 @@ public class InterfaceCofreDigital {
                 JOptionPane.showMessageDialog(janelaPrincipal, "Nenhum arquivo selecionado", "Erro", JOptionPane.ERROR_MESSAGE);
             }
         });
-    }    
+    }            
    
-
     private void mostrarTelaSaida() {
         database.insertIntoRegistros(8001, idUsuario, null);    // Tela de saída apresentada para <login_name>.
         janelaPrincipal.getContentPane().removeAll();
