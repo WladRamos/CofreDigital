@@ -1,0 +1,18 @@
+Colinha
+
+Caminho da Pasta: C:\PUC\SegInfo\T4\CofreDigital\CofreDigital\Pacote-T4\Files
+
+Admin:
+Email: admin@inf1416.puc-rio.br
+Certificado: C:\PUC\SegInfo\T4\CofreDigital\CofreDigital\Pacote-T4\Keys\admin-x509.crt
+Chave: C:\PUC\SegInfo\T4\CofreDigital\CofreDigital\Pacote-T4\Keys\admin-pkcs8-aes.pem
+
+user01:
+Email: user01@inf1416.puc-rio.br
+Certificado: C:\PUC\SegInfo\T4\CofreDigital\CofreDigital\Pacote-T4\Keys\user01-x509.crt
+Chave: C:\PUC\SegInfo\T4\CofreDigital\CofreDigital\Pacote-T4\Keys\user01-pkcs8-aes.pem
+
+user02:
+Email: user02@inf1416.puc-rio.br
+Certificado: C:\PUC\SegInfo\T4\CofreDigital\CofreDigital\Pacote-T4\Keys\user02-x509.crt
+Chave: C:\PUC\SegInfo\T4\CofreDigital\CofreDigital\Pacote-T4\Keys\user02-pkcs8-aes.pem
