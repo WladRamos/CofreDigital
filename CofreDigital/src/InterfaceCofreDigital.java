@@ -5,12 +5,8 @@ Nome: Marina Schuler Martins Matrícula: 2110075
 Nome: Wladimir Calazam de Araujo Goes Ramos Matrícula: 2110104
 */
 
-import javax.crypto.SecretKey;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
-import static org.junit.Assert.fail;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.BufferedImage;
