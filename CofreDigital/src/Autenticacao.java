@@ -29,6 +29,7 @@ public class Autenticacao {
 
         for (String senha: senhasPossiveis){
             senhaVerificada = OpenBSDBCrypt.checkPassword(hash, senha.toCharArray());
+            System.out.print(".");
             if (senhaVerificada) {
                 this.senha = senha;
                 break;
